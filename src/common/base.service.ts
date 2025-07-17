@@ -72,7 +72,7 @@ export abstract class BaseService<E extends ObjectLiteral> {
   async checkExist(
     options: FindOneOptions<E> | FindOptionsWhere<E>,
     expectNotFoundMessage?: string
-  ): Promise<E | null> {
+  ): Promise<E> {
     const existRecord =
       'where' in options
         ? await this.repository.findOne(options)
@@ -84,7 +84,6 @@ export abstract class BaseService<E extends ObjectLiteral> {
         throw new ConflictException({
           message: expectNotFoundMessage,
         });
-      return null;
     }
 
     // CASE: Expect the record exist

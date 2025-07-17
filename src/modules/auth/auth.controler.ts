@@ -1,12 +1,13 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { EEntity } from '@/common/enum';
-import { UserService } from '@/modules/user/user.service';
+import { AuthService } from '@/modules/auth/auth.service';
 import { SignInDto } from '@/modules/auth/dto';
 
-@Controller(EEntity.USER)
+@Controller('auth')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('auth')
-  signIn(@Body() payload: SignInDto) {}
+  signIn(@Body() payload: SignInDto) {
+    return this.authService.signIn(payload);
+  }
 }

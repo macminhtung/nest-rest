@@ -1,8 +1,23 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import { Logger } from '@nestjs/common';
+import { AppModule } from '@/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.disable('x-powered-by'); // Remove x-powered-by header
+  app.enableCors(); // Enable CORS
+
+  // #===========================#
+  // # ==> START APPLICATION <== #
+  // #===========================#
+  const { PORT = 3001 } = process.env;
+  await app.listen(parseInt(`${PORT}`));
+  const logger = app.get(Logger);
+  logger.debug(
+    `==> APP IS RUNNING | PORT: ${PORT} <== [http://localhost:${PORT}/documentation]`,
+    'APPLICATION'
+  );
 }
 bootstrap();

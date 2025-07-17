@@ -20,8 +20,8 @@ export class UserEntity extends BaseEntity {
   @Column()
   lastName: string;
 
-  @Column({ default: new Date().getTime().toString() })
-  sessionTimestamp: string;
+  @Column({ default: new Date().valueOf().toString() })
+  passwordTimestamp: string; // ==> Check JWT after password change
 
   // Relation columns
   @Column({ type: 'int2' })
