@@ -32,7 +32,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-member-access': 0,
       '@typescript-eslint/no-unsafe-return': 0,
       '@typescript-eslint/no-unsafe-call': 0,
-      '@typescript-eslint/no-floating-promises': 0
+      '@typescript-eslint/no-floating-promises': 0,
+      '@typescript-eslint/restrict-template-expressions': 0,
+      '@typescript-eslint/no-unused-expressions': 0,
+      "prettier/prettier": [
+        "error",
+        {
+          "endOfLine": "auto"
+        }
+      ]
     },
   },
 );

@@ -13,7 +13,7 @@ export class AwsS3Service {
     this.awsConfig = this.configService.get('aws')!;
 
     // Create S3Client instance
-    const { region, accessKeyId, secretAccessKey } = this.awsConfig!;
+    const { region, accessKeyId, secretAccessKey } = this.awsConfig;
     this.s3Client = new S3Client({ region, credentials: { accessKeyId, secretAccessKey } });
   }
 
@@ -28,7 +28,7 @@ export class AwsS3Service {
         Key: key,
         ContentType: contentType,
       }),
-      { expiresIn: 3600 }
+      { expiresIn: 3600 },
     );
 
     return url;

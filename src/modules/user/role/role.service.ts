@@ -8,7 +8,7 @@ import { RoleEntity } from '@/modules/user/role/role.entity';
 export class RoleService extends BaseService<RoleEntity> {
   constructor(
     @InjectRepository(RoleEntity)
-    public readonly repository: Repository<RoleEntity>
+    public readonly repository: Repository<RoleEntity>,
   ) {
     super(repository);
   }

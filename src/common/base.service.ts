@@ -1,38 +1,32 @@
 import {
   Repository,
   FindOneOptions,
-  // FindManyOptions,
   FindOptionsWhere,
-  DataSource,
   QueryRunner,
   SelectQueryBuilder,
   ObjectLiteral,
 } from 'typeorm';
-import { InjectDataSource } from '@nestjs/typeorm';
 import {
   ConflictException,
   Injectable,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-// import {
-//   GetRecordsPaginationDto,
-//   DEFAULT_PAGE_NUM,
-//   DEFAULT_PAGE_TAKE,
-//   NUM_LIMIT_RECORDS,
-//   PaginationResponseDto,
-// } from '@/common/dto';
-// import { EOrder } from '@/common/enums';
+import {
+  GetRecordsPaginationDto,
+  DEFAULT_PAGE_NUM,
+  DEFAULT_PAGE_TAKE,
+  NUM_LIMIT_RECORDS,
+  PaginationResponseDto,
+} from '@/common/dtos';
+import { EOrder } from '@/common/enums';
 
 @Injectable()
-export abstract class BaseService<E extends ObjectLiteral> {
+export class BaseService<E extends ObjectLiteral> {
   constructor(protected readonly repository: Repository<E>) {
     this.entityName = this.repository.metadata.name;
   }
-  public readonly entityName: string;
-
-  @InjectDataSource()
-  public readonly dataSource: DataSource;
+  public entityName: string;
 
   public pagingQueryBuilder: SelectQueryBuilder<E>;
 
@@ -42,7 +36,7 @@ export abstract class BaseService<E extends ObjectLiteral> {
   async handleTransactionAndRelease<T>(
     queryRunner: QueryRunner,
     processFunc: () => Promise<T>,
-    rollbackFunc?: () => void
+    rollbackFunc?: () => void,
   ): Promise<T> {
     try {
       // Start transaction
@@ -71,7 +65,7 @@ export abstract class BaseService<E extends ObjectLiteral> {
   // #=====================#
   async checkExist(
     options: FindOneOptions<E> | FindOptionsWhere<E>,
-    expectNotFoundMessage?: string
+    expectNotFoundMessage?: string,
   ): Promise<E> {
     const existRecord =
       'where' in options
@@ -97,63 +91,62 @@ export abstract class BaseService<E extends ObjectLiteral> {
   // #====================#
   // # ==> PAGINATION <== #
   // #====================#
-  // async getPaginationByQuery(
-  //   args: GetRecordsPaginationDto,
-  //   customFilter?: () => void
-  // ): Promise<PaginationResponseDto<E>> {
-  //   const {
-  //     isDeleted,
-  //     createdFrom,
-  //     createdTo,
-  //     includeIds,
-  //     excludeIds,
-  //     isSelectAll,
-  //     order = EOrder.DESC,
-  //     page = DEFAULT_PAGE_NUM,
-  //     take = DEFAULT_PAGE_TAKE,
-  //   } = args;
+  async getPaginationByQuery(
+    args: GetRecordsPaginationDto,
+    customFilter?: () => void,
+  ): Promise<PaginationResponseDto<E>> {
+    const {
+      isDeleted,
+      createdFrom,
+      createdTo,
+      includeIds,
+      excludeIds,
+      isSelectAll,
+      order = EOrder.DESC,
+      page = DEFAULT_PAGE_NUM,
+      take = DEFAULT_PAGE_TAKE,
+    } = args;
 
-  //   // Query records based on includeIds
-  //   const queryBuilder = this.repository.createQueryBuilder(this.entityName);
-  //   if (includeIds?.length) queryBuilder.whereInIds(includeIds);
+    // Query records based on includeIds
+    const queryBuilder = this.repository.createQueryBuilder(this.entityName);
+    if (includeIds?.length) queryBuilder.whereInIds(includeIds);
 
-  //   // Query records based on excludeIds
-  //   if (excludeIds?.length)
-  //     queryBuilder.andWhere(`${this.entityName}.id NOT IN (:...excludeIds)`, {
-  //       excludeIds,
-  //     });
+    // Query records based on excludeIds
+    if (excludeIds?.length)
+      queryBuilder.andWhere(`${this.entityName}.id NOT IN (:...excludeIds)`, {
+        excludeIds,
+      });
 
-  //   // Query records based on createdFrom
-  //   if (createdFrom)
-  //     queryBuilder.andWhere(`${this.entityName}.createdAt >= :createdFrom`, {
-  //       createdFrom,
-  //     });
+    // Query records based on createdFrom
+    if (createdFrom)
+      queryBuilder.andWhere(`${this.entityName}.createdAt >= :createdFrom`, {
+        createdFrom,
+      });
 
-  //   // Query records based on createdTo
-  //   if (createdTo)
-  //     queryBuilder.andWhere(`${this.entityName}.createdAt < :createdTo`, {
-  //       createdTo,
-  //     });
+    // Query records based on createdTo
+    if (createdTo)
+      queryBuilder.andWhere(`${this.entityName}.createdAt < :createdTo`, {
+        createdTo,
+      });
 
-  //   // Query deleted records
-  //   if (isDeleted) queryBuilder.andWhere(`${this.entityName}.deletedAt IS NOT NULL`).withDeleted();
+    // Query deleted records
+    if (isDeleted) queryBuilder.andWhere(`${this.entityName}.deletedAt IS NOT NULL`).withDeleted();
 
-  //   // NOTE: Must mapping queryBuilder into pagingQueryBuilder before run customFilter
-  //   this.pagingQueryBuilder = queryBuilder;
+    // NOTE: Must mapping queryBuilder into pagingQueryBuilder before run customFilter
+    this.pagingQueryBuilder = queryBuilder;
 
-  //   // Run customFilter function
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  //   customFilter && customFilter();
+    // Run customFilter function
+    customFilter && customFilter();
 
-  //   // Sort records via createdAt
-  //   this.pagingQueryBuilder.addOrderBy(`${this.entityName}.createdAt`, order);
+    // Sort records via createdAt
+    this.pagingQueryBuilder.addOrderBy(`${this.entityName}.createdAt`, order);
 
-  //   // CASE: Select all records
-  //   if (isSelectAll) this.pagingQueryBuilder.limit(NUM_LIMIT_RECORDS);
-  //   // CASE: Select pagination records
-  //   else this.pagingQueryBuilder.take(take).skip((page - 1) * take);
+    // CASE: Select all records
+    if (isSelectAll) this.pagingQueryBuilder.limit(NUM_LIMIT_RECORDS);
+    // CASE: Select pagination records
+    else this.pagingQueryBuilder.take(take).skip((page - 1) * take);
 
-  //   const [entities, count] = await this.pagingQueryBuilder.getManyAndCount();
-  //   return new PaginationResponseDto<E>({ args, total: count, data: entities });
-  // }
+    const [entities, count] = await this.pagingQueryBuilder.getManyAndCount();
+    return new PaginationResponseDto<E>({ args, total: count, data: entities });
+  }
 }
