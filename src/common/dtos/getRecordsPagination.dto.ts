@@ -72,27 +72,27 @@ export class GetRecordsPaginationDto {
   @IsBoolean()
   isDeleted?: boolean;
 
-  @ApiPropertyOptional({ type: 'array' })
+  @ApiPropertyOptional({ type: Array<string> })
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
   includeIds?: string[];
 
-  @ApiPropertyOptional({ type: 'array' })
+  @ApiPropertyOptional({ type: Array<string> })
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
   excludeIds?: string[];
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Date })
   @IsOptional()
   @IsBefore('createdTo')
   @IsDateString()
   createdFrom?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Date })
   @IsOptional()
   @IsDateString()
   createdTo?: string;
