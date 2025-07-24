@@ -48,6 +48,7 @@ export class AuthService extends BaseService<UserEntity> {
         'lastName',
         'roleId',
         'isEmailVerified',
+        'passwordTimestamp',
         'role',
       ],
       where: { id, isEmailVerified: true },
@@ -81,14 +82,15 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> SET REFRESH_TOKEN INTO COOKIE <== #
   // #=======================================#
   setRefreshTokenIntoCookie(res: Response, refreshToken: string) {
-    ['/auth/refresh-token', '/auth/update-password'].forEach((path) => {
-      res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
-        path,
-        secure: true,
-        httpOnly: true,
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
+    const isProductionMode = process.env.NODE_ENV === 'prod';
+
+    res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
+      domain: isProductionMode ? process.env.DOMAIN : undefined,
+      path: '/',
+      secure: isProductionMode,
+      httpOnly: true,
+      sameSite: 'none',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
 

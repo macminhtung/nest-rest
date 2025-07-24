@@ -1,4 +1,5 @@
 export const loadENVsFunc = () => ({
+  domain: process.env.DOMAIN!,
   jwtSecretKey: process.env.JWT_SECRET_KEY!,
   appUri: process.env.APP_URI!,
   database: {
