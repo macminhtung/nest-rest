@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import type { TRequest } from '@/common/types';
 import { EMetadataKey } from '@/common/enums';
 import { AuthService } from '@/modules/auth/auth.service';
+import { ETokenType } from '@/modules/shared/services';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -25,7 +26,10 @@ export class AuthGuard implements CanActivate {
     // #==================================#
     // # ==> CASE: CHECK ACCESS TOKEN <== #
     // #==================================#
-    const authUser = await this.authService.checkToken({ accessToken });
+    const authUser = await this.authService.checkToken({
+      type: ETokenType.ACCESS_TOKEN,
+      token: accessToken,
+    });
 
     // Update authUser for the request
     request.authUser = authUser;

@@ -1,14 +1,14 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiProperty, getSchemaPath, ApiOkResponse, ApiExtraModels } from '@nestjs/swagger';
-import { GetRecordsPaginationDto } from '@/common/dtos';
+import { GetRecordsPaginatedDto } from '@/common/dtos';
 
 export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(dataDto: DataDto) =>
   applyDecorators(
-    ApiExtraModels(PaginationResponseDto, dataDto),
+    ApiExtraModels(PaginatedResponseDto, dataDto),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(PaginationResponseDto) },
+          { $ref: getSchemaPath(PaginatedResponseDto) },
           {
             properties: {
               data: {
@@ -22,8 +22,8 @@ export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(dataDto: D
     }),
   );
 
-export class PaginationResponseDto<E> {
-  constructor(payload: { args: GetRecordsPaginationDto; total: number; data: E[] }) {
+export class PaginatedResponseDto<E> {
+  constructor(payload: { args: GetRecordsPaginatedDto; total: number; data: E[] }) {
     const { args, total, data } = payload;
     const { page = 1, take = 1, isSelectAll } = args;
     this.page = page;

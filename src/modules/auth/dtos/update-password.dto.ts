@@ -1,8 +1,12 @@
 import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SignInResponseDto {
+export class UpdatePasswordDto {
   @ApiProperty()
   @IsString()
-  accessToken: string;
+  oldPassword: string;
+
+  @ApiProperty()
+  @IsString()
+  newPassword: string;
 }

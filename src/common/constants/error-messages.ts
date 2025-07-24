@@ -5,4 +5,5 @@ export const ERROR_MESSAGES = {
   REFRESH_TOKEN_INVALID: 'Refresh token invalid',
   PERMISSION_INVALID: 'Permission invalid',
   NOT_FOUND: 'Not found',
+  ALREADY_EXISTS: 'Already exists',
 };

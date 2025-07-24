@@ -1,14 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+import { Logger } from '@nestjs/common';
 import { AppModule } from '@/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.disable('x-powered-by'); // Remove x-powered-by header
-  app.enableCors(); // Enable CORS
+  app.enableCors({ origin: process.env.APP_URI, credentials: true });
+  app.use(cookieParser());
 
   // #============================#
   // # ==> APIs DOCUMENTATION <== #

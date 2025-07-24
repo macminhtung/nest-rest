@@ -1,5 +1,6 @@
 export const loadENVsFunc = () => ({
   jwtSecretKey: process.env.JWT_SECRET_KEY!,
+  appUri: process.env.APP_URI!,
   database: {
     host: process.env.POSTGRES_HOST!,
     port: +process.env.POSTGRES_PORT!,

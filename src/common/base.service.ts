@@ -1,11 +1,12 @@
 import {
   Repository,
   FindOneOptions,
-  FindOptionsWhere,
   QueryRunner,
   SelectQueryBuilder,
   ObjectLiteral,
+  DataSource,
 } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 import {
   ConflictException,
   Injectable,
@@ -13,12 +14,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  GetRecordsPaginationDto,
+  GetRecordsPaginatedDto,
   DEFAULT_PAGE_NUM,
   DEFAULT_PAGE_TAKE,
   NUM_LIMIT_RECORDS,
-  PaginationResponseDto,
+  PaginatedResponseDto,
 } from '@/common/dtos';
+import { ERROR_MESSAGES } from '@/common/constants';
 import { EOrder } from '@/common/enums';
 
 @Injectable()
@@ -29,6 +31,9 @@ export class BaseService<E extends ObjectLiteral> {
   public entityName: string;
 
   public pagingQueryBuilder: SelectQueryBuilder<E>;
+
+  @InjectDataSource()
+  public readonly dataSource: DataSource;
 
   // #=====================#
   // # ==> TRANSACTION <== #
@@ -63,38 +68,39 @@ export class BaseService<E extends ObjectLiteral> {
   // #=====================#
   // # ==> CHECK_EXIST <== #
   // #=====================#
-  async checkExist(
-    options: FindOneOptions<E> | FindOptionsWhere<E>,
-    expectNotFoundMessage?: string,
-  ): Promise<E> {
-    const existRecord =
-      'where' in options
-        ? await this.repository.findOne(options)
-        : await this.repository.findOneBy(options as FindOptionsWhere<E>);
+  async checkExist(findOpts: FindOneOptions<E>, errorMessage?: string): Promise<E> {
+    const existRecord = await this.repository.findOne(findOpts);
 
-    // CASE: Expect the record not found
-    if (expectNotFoundMessage) {
-      if (existRecord)
-        throw new ConflictException({
-          message: expectNotFoundMessage,
-        });
-    }
-
-    // CASE: Expect the record exist
+    // Throw error if the record doesn't exists
     if (!existRecord)
       throw new NotFoundException({
-        message: `[${this.repository.metadata.name.replace('Entity', '')}] Not found!`,
+        message: errorMessage || `[${this.repository.metadata.name}] ${ERROR_MESSAGES.NOT_FOUND}!`,
       });
+
     return existRecord;
   }
 
-  // #====================#
-  // # ==> PAGINATION <== #
-  // #====================#
-  async getPaginationByQuery(
-    args: GetRecordsPaginationDto,
+  // #========================#
+  // # ==> CHECK_CONFLICT <== #
+  // #========================#
+  async checkConflict(findOpts: FindOneOptions<E>, errorMessage?: string) {
+    const existRecord = await this.repository.findOne(findOpts);
+
+    // Throw error if the record exists
+    if (existRecord)
+      throw new ConflictException({
+        message:
+          errorMessage || `[${this.repository.metadata.name}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
+      });
+  }
+
+  // #===============================#
+  // # ==> GET RECORDS PAGINATED <== #
+  // #===============================#
+  async getRecordsPaginated(
+    args: GetRecordsPaginatedDto,
     customFilter?: () => void,
-  ): Promise<PaginationResponseDto<E>> {
+  ): Promise<PaginatedResponseDto<E>> {
     const {
       isDeleted,
       createdFrom,
@@ -147,6 +153,6 @@ export class BaseService<E extends ObjectLiteral> {
     else this.pagingQueryBuilder.take(take).skip((page - 1) * take);
 
     const [entities, count] = await this.pagingQueryBuilder.getManyAndCount();
-    return new PaginationResponseDto<E>({ args, total: count, data: entities });
+    return new PaginatedResponseDto<E>({ args, total: count, data: entities });
   }
 }

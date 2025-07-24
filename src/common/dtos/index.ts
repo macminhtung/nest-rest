@@ -1,2 +1,2 @@
-export * from './getRecordsPagination.dto';
-export * from './paginationResponse.dto';
+export * from './get-records-paginated.dto';
+export * from './paginated-response.dto';

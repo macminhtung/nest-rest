@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '@/common/base.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { UpdateUserDto, GetUsersDto } from '@/modules/user/dtos';
+import { UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 
 @Injectable()
 export class UserService extends BaseService<UserEntity> {
@@ -14,14 +14,28 @@ export class UserService extends BaseService<UserEntity> {
     super(repository);
   }
 
+  // #=====================#
+  // # ==> UPDATE USER <== #
+  // #=====================#
   async updateUser(id: string, payload: UpdateUserDto) {
     const user = await this.repository.save({ id, ...payload });
     return user;
   }
 
-  async getUsers(params: GetUsersDto) {
-    const paginationData = await this.getPaginationByQuery(params, () => {
-      const { keySearch, roleIds } = params;
+  // #==================#
+  // # ==> GET USER <== #
+  // #==================#
+  async getUser(id: string) {
+    const existedUser = await this.checkExist({ where: { id }, relations: { role: true } });
+    return existedUser;
+  }
+
+  // #=============================#
+  // # ==> GET USERS PAGINATED <== #
+  // #=============================#
+  async getUsersPaginated(queryParams: GetUsersPaginatedDto) {
+    const paginationData = await this.getRecordsPaginated(queryParams, () => {
+      const { keySearch, roleIds } = queryParams;
       const alias = this.entityName;
 
       this.pagingQueryBuilder.leftJoinAndSelect(`${alias}.role`, 'role');

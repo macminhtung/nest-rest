@@ -27,7 +27,7 @@ export class APIExceptionsFilter implements ExceptionFilter {
     const response = host.switchToHttp().getResponse();
     return response.status(status).send({
       statusCode: status,
-      message: loggerMessage,
+      message,
     });
   }
 }

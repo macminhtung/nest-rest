@@ -1,16 +1,19 @@
-import { Controller, Get, Put, Param, Body } from '@nestjs/common';
+import { Controller, Get, Put, Param, Query, Body } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { EEntity, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
 import { ApiOkResponsePaginated } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { UpdateUserDto, GetUsersDto } from '@/modules/user/dtos';
+import { UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 
 @Controller(EEntity.USER)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // #=====================#
+  // # ==> UPDATE USER <== #
+  // #=====================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Put(':id')
@@ -18,10 +21,23 @@ export class UserController {
     return this.userService.updateUser(id, payload);
   }
 
+  // #==================#
+  // # ==> GET USER <== #
+  // #==================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(UserEntity)
-  @Get()
-  getUsers(@Param() params: GetUsersDto) {
-    return this.userService.getUsers(params);
+  @Get(':id')
+  getUser(@Param('id') id: string) {
+    return this.userService.getUser(id);
+  }
+
+  // #============================#
+  // # ==> GET USERS BY QUERY <== #
+  // #============================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponsePaginated(UserEntity)
+  @Get('/paginated')
+  getUsersPaginated(@Query() queryParams: GetUsersPaginatedDto) {
+    return this.userService.getUsersPaginated(queryParams);
   }
 }

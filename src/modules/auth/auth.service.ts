@@ -1,13 +1,22 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { hash, compare } from 'bcrypt';
-import { ERROR_MESSAGES } from '@/common/constants';
+import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
+import { ECookieKey } from '@/common/enums';
+import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { JwtService } from '@/modules/shared/services';
-import { SignInDto, SignInResponseDto } from '@/modules/auth/dtos';
+import { JwtService, ETokenType, TVerifyToken } from '@/modules/shared/services';
+import {
+  SignUpDto,
+  SignInDto,
+  SignInResponseDto,
+  RefreshTokenDto,
+  UpdatePasswordDto,
+} from '@/modules/auth/dtos';
 
 @Injectable()
 export class AuthService extends BaseService<UserEntity> {
@@ -24,20 +33,23 @@ export class AuthService extends BaseService<UserEntity> {
   // #=====================#
   // # ==> CHECK TOKEN <== #
   // #=====================#
-  async checkToken(
-    payload:
-      | { accessToken: string; refreshToken?: undefined }
-      | { accessToken?: undefined; refreshToken: string },
-  ): Promise<UserEntity> {
-    const { accessToken, refreshToken } = payload;
-
+  async checkToken<T extends ETokenType>(payload: TVerifyToken<T>): Promise<UserEntity> {
     // Verify token
-    const token = accessToken || refreshToken || '';
-    const decodeToken = this.jwtService.verifyToken(token);
+    const decodeToken = this.jwtService.verifyToken(payload);
 
     // Check user already exists
-    const { id, passwordTimestamp } = decodeToken!;
+    const { id, passwordTimestamp } = decodeToken;
     const existedUser = await this.userService.checkExist({
+      select: [
+        'id',
+        'email',
+        'password',
+        'firstName',
+        'lastName',
+        'roleId',
+        'isEmailVerified',
+        'role',
+      ],
       where: { id, isEmailVerified: true },
       relations: { role: true },
     });
@@ -45,13 +57,6 @@ export class AuthService extends BaseService<UserEntity> {
     // Check passwordTimestamp is correct
     if (passwordTimestamp !== existedUser.passwordTimestamp)
       throw new BadRequestException({ message: ERROR_MESSAGES.TIMESTAMP_INCORRECT });
-
-    // CASE: ACCESS_TOKEN
-    if (accessToken && !decodeToken?.isAccessToken)
-      throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
-    // CASE: REFRESH_TOKEN
-    else if (refreshToken && !decodeToken?.isRefreshToken)
-      throw new BadRequestException({ message: ERROR_MESSAGES.REFRESH_TOKEN_INVALID });
 
     return existedUser;
   }
@@ -72,14 +77,61 @@ export class AuthService extends BaseService<UserEntity> {
     return await compare(password, hashPassword);
   }
 
+  // #=======================================#
+  // # ==> SET REFRESH_TOKEN INTO COOKIE <== #
+  // #=======================================#
+  setRefreshTokenIntoCookie(res: Response, refreshToken: string) {
+    ['/auth/refresh-token', '/auth/update-password'].forEach((path) => {
+      res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
+        path,
+        secure: true,
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+    });
+  }
+
+  // #================#
+  // # ==> SIGNUP <== #
+  // #================#
+  async signUp(payload: SignUpDto): Promise<UserEntity> {
+    const { email, password, firstName, lastName } = payload;
+
+    // Check if email has conflict
+    await this.userService.checkConflict({ where: { email } });
+
+    // Create the passwordTimestamp
+    const passwordTimestamp = new Date().valueOf().toString();
+
+    // Hash the password
+    const hashPassword = await this.generateHashPassword(password);
+
+    // Create a new user
+    const newUser = await this.repository.save({
+      email,
+      password: hashPassword,
+      firstName,
+      lastName,
+      isEmailVerified: true,
+      passwordTimestamp,
+      roleId: DEFAULT_ROLES.USER.id,
+    });
+
+    return newUser;
+  }
+
   // #================#
   // # ==> SIGNIN <== #
   // #================#
-  async signIn(payload: SignInDto): Promise<SignInResponseDto> {
+  async signIn(res: Response, payload: SignInDto): Promise<SignInResponseDto> {
     const { email, password } = payload;
 
     // Check email already exists
-    const existUser = await this.userService.checkExist({ email });
+    const existUser = await this.userService.checkExist({
+      select: ['id', 'password', 'passwordTimestamp'],
+      where: { email, isEmailVerified: true },
+    });
     const { id, passwordTimestamp } = existUser;
 
     // Check password is valid
@@ -92,15 +144,108 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Generate accessToken
     const commonTokenPayload = { id, email, passwordTimestamp };
-    const accessTokenPayload = { ...commonTokenPayload, isAccessToken: true };
-    const accessToken = this.jwtService.signPayload(accessTokenPayload);
-
-    // Generate refreshToken
-    const refreshTokenPayload = { ...commonTokenPayload, isRefreshToken: true };
-    const refreshToken = this.jwtService.signPayload(refreshTokenPayload, {
-      expiresIn: '360 days',
+    const accessToken = this.jwtService.generateToken({
+      type: ETokenType.ACCESS_TOKEN,
+      tokenPayload: { ...commonTokenPayload, isAccessToken: true },
     });
 
-    return { accessToken, refreshToken };
+    // Generate refreshToken
+    const refreshToken = this.jwtService.generateToken({
+      type: ETokenType.REFRESH_TOKEN,
+      tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
+      options: { expiresIn: '30 days' },
+    });
+
+    // Set refreshToken into cookie
+    this.setRefreshTokenIntoCookie(res, refreshToken);
+
+    return { accessToken };
+  }
+
+  // #=======================#
+  // # ==> REFRESH TOKEN <== #
+  // #=======================#
+  async refreshToken(req: TRequest, payload: RefreshTokenDto) {
+    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN];
+    const { accessToken } = payload;
+
+    // Check refreshToken valid
+    const { id, email, passwordTimestamp } = await this.checkToken({
+      type: ETokenType.REFRESH_TOKEN,
+      token: refreshToken,
+    });
+
+    // Verify accessToken has expired
+    try {
+      await this.checkToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken });
+    } catch (error) {
+      if (error.message !== 'jwt expired')
+        throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
+    }
+
+    // Generate new accessToken
+    const newAccessToken = this.jwtService.generateToken({
+      type: ETokenType.ACCESS_TOKEN,
+      tokenPayload: { id, email, passwordTimestamp, isAccessToken: true },
+    });
+
+    return { accessToken: newAccessToken };
+  }
+
+  // #=========================#
+  // # ==> UPDATE PASSWORD <== #
+  // #=========================#
+  async updatePassword(req: TRequest, res: Response, payload: UpdatePasswordDto) {
+    const { id: authId, email } = req.authUser;
+    const { oldPassword, newPassword } = payload;
+
+    // Check refreshToken valid
+    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN];
+    await this.checkToken({
+      type: ETokenType.REFRESH_TOKEN,
+      token: refreshToken,
+    });
+
+    // Compare hashPassword with oldPassword
+    const isCorrectPassword = await this.compareHashPassword({
+      password: oldPassword,
+      hashPassword: newPassword,
+    });
+    if (!isCorrectPassword)
+      throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
+
+    // Set new password
+    const newPasswordTimestamp = new Date().valueOf().toString();
+    const hashPassword = await this.generateHashPassword(newPassword);
+    await this.userService.repository.update(authId, {
+      password: hashPassword,
+      passwordTimestamp: newPasswordTimestamp,
+    });
+
+    // Generate accessToken
+    const commonTokenPayload = { id: authId, email, passwordTimestamp: newPasswordTimestamp };
+    const newAccessToken = this.jwtService.generateToken({
+      type: ETokenType.ACCESS_TOKEN,
+      tokenPayload: { ...commonTokenPayload, isAccessToken: true },
+    });
+
+    // Generate refreshToken
+    const newRefreshToken = this.jwtService.generateToken({
+      type: ETokenType.REFRESH_TOKEN,
+      tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
+      options: { expiresIn: '30 days' },
+    });
+
+    // Set refreshToken into cookie
+    this.setRefreshTokenIntoCookie(res, newRefreshToken);
+
+    return { accessToken: newAccessToken };
+  }
+
+  // #=====================#
+  // # ==> GET PROFILE <== #
+  // #=====================#
+  getProfile(request: TRequest) {
+    return request.authUser;
   }
 }

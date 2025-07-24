@@ -3,6 +3,7 @@ import * as Joi from 'joi';
 export const ENV_VALIDATION = Joi.object({
   PORT: Joi.number().default(3001),
   JWT_SECRET_KEY: Joi.string().required(),
+  APP_URI: Joi.string().required(),
 
   POSTGRES_HOST: Joi.string().required(),
   POSTGRES_PORT: Joi.number().default(5432),

@@ -1,5 +1,5 @@
 import { Column, PrimaryGeneratedColumn, Entity, ManyToOne } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EEntity } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
@@ -14,7 +14,7 @@ export class UserEntity extends BaseEntity {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @ApiProperty()
@@ -25,8 +25,7 @@ export class UserEntity extends BaseEntity {
   @Column()
   lastName: string;
 
-  @ApiProperty()
-  @Column({ default: new Date().valueOf().toString() })
+  @Column({ select: false, default: new Date().valueOf().toString() })
   passwordTimestamp: string; // ==> Check JWT after password change
 
   @ApiProperty()
@@ -39,6 +38,7 @@ export class UserEntity extends BaseEntity {
   roleId: number;
 
   // Relation tables
+  @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
   role: RoleEntity;
 }
