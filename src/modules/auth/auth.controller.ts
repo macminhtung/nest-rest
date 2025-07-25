@@ -1,8 +1,7 @@
-import { Controller, Post, Put, Get, Body, Req, Res } from '@nestjs/common';
+import { Controller, Post, Put, Get, Delete, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { Public } from '@/decorators';
-import { ApiOkResponsePaginated } from '@/common/dtos';
 import { AuthService } from '@/modules/auth/auth.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import type { TRequest } from '@/common/types';
@@ -38,6 +37,15 @@ export class AuthController {
     return this.authService.signIn(res, payload);
   }
 
+  // #=================#
+  // # ==> SIGNOUT <== #
+  // #=================#
+  @ApiOkResponse({ type: String, example: HttpStatus.OK })
+  @Delete('signout')
+  signOut(@Res({ passthrough: true }) res: Response) {
+    return this.authService.signOut(res);
+  }
+
   // #=======================#
   // # ==> REFRESH TOKEN <== #
   // #=======================#
@@ -64,7 +72,7 @@ export class AuthController {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  @ApiOkResponsePaginated(UserEntity)
+  @ApiOkResponse({ type: UserEntity })
   @Get('/profile')
   getProfile(@Req() req: TRequest) {
     return this.authService.getProfile(req);

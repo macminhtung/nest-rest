@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -42,6 +42,7 @@ export class AuthService extends BaseService<UserEntity> {
     const existedUser = await this.userService.checkExist({
       select: [
         'id',
+        'avatar',
         'email',
         'password',
         'firstName',
@@ -164,6 +165,16 @@ export class AuthService extends BaseService<UserEntity> {
     return { accessToken };
   }
 
+  // #=================#
+  // # ==> SIGNOUT <== #
+  // #=================#
+  signOut(res: Response): HttpStatus {
+    // Clear refreshToken into cookie
+    this.setRefreshTokenIntoCookie(res, '');
+
+    return HttpStatus.OK;
+  }
+
   // #=======================#
   // # ==> REFRESH TOKEN <== #
   // #=======================#
@@ -198,7 +209,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> UPDATE PASSWORD <== #
   // #=========================#
   async updatePassword(req: TRequest, res: Response, payload: UpdatePasswordDto) {
-    const { id: authId, email } = req.authUser;
+    const { id: authId, email, password } = req.authUser;
     const { oldPassword, newPassword } = payload;
 
     // Check refreshToken valid
@@ -211,7 +222,7 @@ export class AuthService extends BaseService<UserEntity> {
     // Compare hashPassword with oldPassword
     const isCorrectPassword = await this.compareHashPassword({
       password: oldPassword,
-      hashPassword: newPassword,
+      hashPassword: password,
     });
     if (!isCorrectPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
@@ -248,6 +259,6 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> GET PROFILE <== #
   // #=====================#
   getProfile(request: TRequest) {
-    return request.authUser;
+    return { ...request.authUser, password: undefined, passwordTimestamp: undefined };
   }
 }

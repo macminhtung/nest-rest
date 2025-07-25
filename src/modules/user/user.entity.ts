@@ -10,6 +10,10 @@ export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @ApiPropertyOptional()
+  @Column({ nullable: true })
+  avatar: string;
+
   @ApiProperty()
   @Column()
   email: string;
