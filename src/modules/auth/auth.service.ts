@@ -16,6 +16,7 @@ import {
   SignInResponseDto,
   RefreshTokenDto,
   UpdatePasswordDto,
+  UpdateProfileDto,
 } from '@/modules/auth/dtos';
 
 @Injectable()
@@ -258,7 +259,15 @@ export class AuthService extends BaseService<UserEntity> {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  getProfile(request: TRequest) {
-    return { ...request.authUser, password: undefined, passwordTimestamp: undefined };
+  getProfile(req: TRequest) {
+    return { ...req.authUser, password: undefined, passwordTimestamp: undefined };
+  }
+
+  // #========================#
+  // # ==> UPDATE PROFILE <== #
+  // #========================#
+  async updateProfile(req: TRequest, payload: UpdateProfileDto) {
+    await this.repository.update(req.authUser.id, payload);
+    return payload;
   }
 }

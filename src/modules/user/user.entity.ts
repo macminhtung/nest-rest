@@ -10,12 +10,12 @@ export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty()
   @Column({ nullable: true })
   avatar: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column({ select: false })

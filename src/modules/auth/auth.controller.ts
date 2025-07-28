@@ -11,6 +11,7 @@ import {
   SignInResponseDto,
   RefreshTokenDto,
   UpdatePasswordDto,
+  UpdateProfileDto,
 } from '@/modules/auth/dtos';
 
 @Controller('auth')
@@ -60,7 +61,7 @@ export class AuthController {
   // # ==> UPDATE PASSWORD <== #
   // #=========================#
   @ApiOkResponse({ type: SignInResponseDto })
-  @Put('update-password')
+  @Put('password')
   updatePassword(
     @Req() req: TRequest,
     @Res({ passthrough: true }) res: Response,
@@ -76,5 +77,14 @@ export class AuthController {
   @Get('/profile')
   getProfile(@Req() req: TRequest) {
     return this.authService.getProfile(req);
+  }
+
+  // #========================#
+  // # ==> UPDATE PROFILE <== #
+  // #========================#
+  @ApiOkResponse({ type: UpdateProfileDto })
+  @Put('/profile')
+  updateProfile(@Req() req: TRequest, @Body() payload: UpdateProfileDto) {
+    return this.authService.updateProfile(req, payload);
   }
 }
