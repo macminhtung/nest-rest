@@ -91,7 +91,7 @@ export class AuthService extends BaseService<UserEntity> {
       path: '/',
       secure: isProductionMode,
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
@@ -144,7 +144,7 @@ export class AuthService extends BaseService<UserEntity> {
       hashPassword: existUser.password,
     });
     if (!isValidPassword)
-      throw new BadRequestException({ message: ERROR_MESSAGES.REFRESH_TOKEN_INVALID });
+      throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
     // Generate accessToken
     const commonTokenPayload = { id, email, passwordTimestamp };
