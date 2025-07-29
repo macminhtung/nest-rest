@@ -43,7 +43,7 @@ export function IsBefore(property: string, validationOptions?: ValidationOptions
   };
 }
 
-export class GetRecordsPaginatedDto {
+export class GetPaginatedRecordsDto {
   @ApiPropertyOptional({ enum: EOrder })
   @IsOptional()
   @IsEnum(EOrder)

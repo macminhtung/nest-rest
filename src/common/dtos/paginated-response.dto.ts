@@ -1,19 +1,19 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiProperty, getSchemaPath, ApiOkResponse, ApiExtraModels } from '@nestjs/swagger';
-import { GetRecordsPaginatedDto } from '@/common/dtos';
+import { GetPaginatedRecordsDto } from '@/common/dtos';
 
-export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(dataDto: DataDto) =>
+export const ApiOkResponsePaginated = <RecordDto extends Type<unknown>>(recordDto: RecordDto) =>
   applyDecorators(
-    ApiExtraModels(PaginatedResponseDto, dataDto),
+    ApiExtraModels(PaginatedResponseDto, recordDto),
     ApiOkResponse({
       schema: {
         allOf: [
           { $ref: getSchemaPath(PaginatedResponseDto) },
           {
             properties: {
-              data: {
+              records: {
                 type: 'array',
-                items: { $ref: getSchemaPath(dataDto) },
+                items: { $ref: getSchemaPath(recordDto) },
               },
             },
           },
@@ -23,16 +23,13 @@ export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(dataDto: D
   );
 
 export class PaginatedResponseDto<E> {
-  constructor(payload: { args: GetRecordsPaginatedDto; total: number; data: E[] }) {
-    const { args, total, data } = payload;
-    const { page = 1, take = 1, isSelectAll } = args;
+  constructor(payload: { args: GetPaginatedRecordsDto; total: number; records: E[] }) {
+    const { args, total, records } = payload;
+    const { page = 1, take = 1 } = args;
     this.page = page;
     this.take = take;
     this.total = total;
-    this.pageCount = isSelectAll ? 1 : Math.ceil(total / take) || 1;
-    this.hasPreviousPage = page > 1;
-    this.hasNextPage = page < this.pageCount;
-    this.data = data;
+    this.records = records;
   }
 
   @ApiProperty({ type: 'number' })
@@ -44,15 +41,6 @@ export class PaginatedResponseDto<E> {
   @ApiProperty({ type: 'number' })
   total: number;
 
-  @ApiProperty({ type: 'number' })
-  pageCount: number;
-
-  @ApiProperty({ type: 'boolean' })
-  hasPreviousPage: boolean;
-
-  @ApiProperty({ type: 'boolean' })
-  hasNextPage: boolean;
-
   @ApiProperty({ type: () => Array<E> })
-  data: E[];
+  records: E[];
 }

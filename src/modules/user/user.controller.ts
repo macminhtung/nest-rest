@@ -31,13 +31,13 @@ export class UserController {
     return this.userService.getUser(id);
   }
 
-  // #============================#
-  // # ==> GET USERS BY QUERY <== #
-  // #============================#
+  // #=============================#
+  // # ==> GET PAGINATED USERS <== #
+  // #=============================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(UserEntity)
   @Get('/paginated')
-  getUsersPaginated(@Query() queryParams: GetUsersPaginatedDto) {
-    return this.userService.getUsersPaginated(queryParams);
+  getPaginatedUsers(@Query() queryParams: GetUsersPaginatedDto) {
+    return this.userService.getPaginatedUsers(queryParams);
   }
 }

@@ -11,6 +11,7 @@ import { APIExceptionsFilter } from '@/filters';
 import { APIValidationPipe } from '@/pipes';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
+import { ProductModule } from '@/modules/product/product.module';
 import { SharedModule } from '@/modules/shared/shared.module';
 
 @Module({
@@ -52,6 +53,7 @@ import { SharedModule } from '@/modules/shared/shared.module';
     SharedModule,
     UserModule,
     AuthModule,
+    ProductModule,
   ],
   providers: [
     // #===================================#

@@ -28,7 +28,13 @@ export class HandleTreeError {
 
 export class APIValidationPipe extends ValidationPipe {
   constructor() {
-    super({ whitelist: true });
+    super({
+      whitelist: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    });
   }
 
   exceptionFactory = (validationErrors: ValidationError[]) => {

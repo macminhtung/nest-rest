@@ -14,7 +14,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  GetRecordsPaginatedDto,
+  GetPaginatedRecordsDto,
   DEFAULT_PAGE_NUM,
   DEFAULT_PAGE_TAKE,
   NUM_LIMIT_RECORDS,
@@ -95,10 +95,10 @@ export class BaseService<E extends ObjectLiteral> {
   }
 
   // #===============================#
-  // # ==> GET RECORDS PAGINATED <== #
+  // # ==> GET PAGINATED RECORDS <== #
   // #===============================#
-  async getRecordsPaginated(
-    args: GetRecordsPaginatedDto,
+  async getPaginatedRecords(
+    args: GetPaginatedRecordsDto,
     customFilter?: () => void,
   ): Promise<PaginatedResponseDto<E>> {
     const {
@@ -153,6 +153,6 @@ export class BaseService<E extends ObjectLiteral> {
     else this.pagingQueryBuilder.take(take).skip((page - 1) * take);
 
     const [entities, count] = await this.pagingQueryBuilder.getManyAndCount();
-    return new PaginatedResponseDto<E>({ args, total: count, data: entities });
+    return new PaginatedResponseDto<E>({ args, total: count, records: entities });
   }
 }

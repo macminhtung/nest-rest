@@ -31,10 +31,10 @@ export class UserService extends BaseService<UserEntity> {
   }
 
   // #=============================#
-  // # ==> GET USERS PAGINATED <== #
+  // # ==> GET PAGINATED USERS <== #
   // #=============================#
-  async getUsersPaginated(queryParams: GetUsersPaginatedDto) {
-    const paginationData = await this.getRecordsPaginated(queryParams, () => {
+  async getPaginatedUsers(queryParams: GetUsersPaginatedDto) {
+    const paginationData = await this.getPaginatedRecords(queryParams, () => {
       const { keySearch, roleIds } = queryParams;
       const alias = this.entityName;
 
