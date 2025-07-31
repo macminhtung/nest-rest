@@ -13,6 +13,8 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { ProductModule } from '@/modules/product/product.module';
 import { SharedModule } from '@/modules/shared/shared.module';
+import { ElasticModule } from '@/modules/elastic/elastic.module';
+import type { TEnvConfiguration } from '@/config';
 
 @Module({
   imports: [
@@ -26,12 +28,18 @@ import { SharedModule } from '@/modules/shared/shared.module';
       validationSchema: ENV_VALIDATION,
     }),
 
+    // #==============================#
+    // # ==> ELASTICSEARCH MODULE <== #
+    // #==============================#
+    ElasticModule,
+
     // #=========================#
     // # ==> TYPE_ORM MODULE <== #
     // #=========================#
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => await configService.get('database')!,
+      useFactory: async (configService: ConfigService<TEnvConfiguration>) =>
+        await configService.get('database')!,
       dataSourceFactory: async (options) => {
         const dataSource = new DataSource({
           entities: ['dist/**/*.entity{.ts,.js}'],

@@ -21,11 +21,11 @@ async function bootstrap() {
   // #===========================#
   // # ==> START APPLICATION <== #
   // #===========================#
-  const { PORT = 3001 } = process.env;
+  const { PROTOCOL, DOMAIN, PORT } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
   logger.debug(
-    `==> APP IS RUNNING | PORT: ${PORT} <== [http://localhost:${PORT}/documentation]`,
+    `==> APP IS RUNNING | PORT: ${PORT} <== [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`,
     'APPLICATION',
   );
 }
