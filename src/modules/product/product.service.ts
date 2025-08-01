@@ -25,13 +25,24 @@ export class ProductService extends BaseService<ProductEntity> {
     // Check conflict the product name
     await this.checkConflict({ where: { name: payload.name } });
 
-    // Create new product
-    const newProduct = await this.repository.save(payload);
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    const resData = await this.handleTransactionAndRelease(
+      queryRunner,
 
-    // Create index for the new product
-    await this.searchProductService.index(newProduct);
+      // Process function
+      async () => {
+        // Create new product
+        const newProduct = await queryRunner.manager.save(ProductEntity, payload);
 
-    return newProduct;
+        // Create index for the new product
+        await this.searchProductService.index(newProduct);
+
+        return newProduct;
+      },
+    );
+
+    return resData;
   }
 
   // #========================#
@@ -44,16 +55,22 @@ export class ProductService extends BaseService<ProductEntity> {
     // Check conflict the product name
     await this.checkConflict({ where: { name: payload.name, id: Not(id) } });
 
-    // Update product
-    await this.repository.update(id, payload);
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease(
+      queryRunner,
 
-    // Identify the updated product
-    const updatedProduct = { ...existedProduct, ...payload };
+      // Process function
+      async () => {
+        // Update product
+        await queryRunner.manager.update(ProductEntity, id, payload);
 
-    // Update index for the new product
-    await this.searchProductService.index(updatedProduct);
+        // Update index for the new product
+        await this.searchProductService.index({ id, ...payload });
+      },
+    );
 
-    return updatedProduct;
+    return { ...existedProduct, ...payload };
   }
 
   // #========================#
@@ -63,11 +80,20 @@ export class ProductService extends BaseService<ProductEntity> {
     // Check the product already exists
     await this.checkExist({ where: { id } });
 
-    // Delete product
-    await this.repository.delete(id);
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease(
+      queryRunner,
 
-    // Delete index for the product
-    await this.searchProductService.delete(id);
+      // Process function
+      async () => {
+        // Delete product
+        await queryRunner.manager.delete(ProductEntity, id);
+
+        // Delete index for the product
+        await this.searchProductService.delete(id);
+      },
+    );
 
     return id;
   }

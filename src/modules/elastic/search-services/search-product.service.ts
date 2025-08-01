@@ -3,6 +3,8 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { EEntity } from '@/common/enums';
 import { ProductEntity } from '@/modules/product/product.entity';
 
+type TProductDocument = Pick<ProductEntity, 'id' | 'name' | 'description'>;
+
 @Injectable()
 export class SearchProductService {
   constructor(private readonly service: ElasticsearchService) {}
@@ -58,8 +60,8 @@ export class SearchProductService {
   // #===============#
   // # ==> INDEX <== #
   // #===============#
-  async index(product: ProductEntity) {
-    const { id, name, description } = product;
+  async index(productDoc: TProductDocument) {
+    const { id, name, description } = productDoc;
 
     return await this.service.index({
       index: this.indexName,
@@ -79,7 +81,7 @@ export class SearchProductService {
   // # ==> SEARCH <== #
   // #================#
   async search(keySearch: string) {
-    const { hits } = await this.service.search<ProductEntity>({
+    const { hits } = await this.service.search<TProductDocument>({
       index: this.indexName,
       query: { multi_match: { query: keySearch, fields: ['name', 'description'] } },
     });
