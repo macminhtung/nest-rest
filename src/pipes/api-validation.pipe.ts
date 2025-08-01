@@ -26,7 +26,7 @@ export class HandleTreeError {
   }
 }
 
-export class APIValidationPipe extends ValidationPipe {
+export class ApiValidationPipe extends ValidationPipe {
   constructor() {
     super({
       whitelist: true,

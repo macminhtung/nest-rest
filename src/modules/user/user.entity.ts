@@ -11,7 +11,7 @@ export class UserEntity extends BaseEntity {
   id: string;
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Column({ default: '' })
   avatar: string;
 
   @ApiProperty()

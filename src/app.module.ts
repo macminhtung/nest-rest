@@ -5,10 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { loadENVsFunc, ENV_VALIDATION } from '@/config';
-import { APILoggingInterceptor } from '@/interceptors';
+import { ApiLoggingInterceptor } from '@/interceptors';
 import { AuthGuard } from '@/guards';
-import { APIExceptionsFilter } from '@/filters';
-import { APIValidationPipe } from '@/pipes';
+import { ApiExceptionsFilter } from '@/filters';
+import { ApiValidationPipe } from '@/pipes';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { ProductModule } from '@/modules/product/product.module';
@@ -67,17 +67,17 @@ import type { TEnvConfiguration } from '@/config';
     // #===================================#
     // # ==> [INTERCEPTOR] API LOGGING <== #
     // #===================================#
-    { provide: APP_INTERCEPTOR, useClass: APILoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ApiLoggingInterceptor },
 
     // #================================#
     // # ==> [FILTER] API EXCEPTION <== #
     // #================================#
-    { provide: APP_FILTER, useClass: APIExceptionsFilter },
+    { provide: APP_FILTER, useClass: ApiExceptionsFilter },
 
     // #===============================#
     // # ==> [PIPE] API VALIDATION <== #
     // #===============================#
-    { provide: APP_PIPE, useClass: APIValidationPipe },
+    { provide: APP_PIPE, useClass: ApiValidationPipe },
 
     // #====================================#
     // # ==> [GUARD] API AUTHENTICATION <== #

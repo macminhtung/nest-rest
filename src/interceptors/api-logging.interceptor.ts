@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from '@nestjs/common';
 
 @Injectable()
-export class APILoggingInterceptor implements NestInterceptor {
+export class ApiLoggingInterceptor implements NestInterceptor {
   constructor(private logger: Logger) {}
 
   intercept(context: ExecutionContext, next: CallHandler) {

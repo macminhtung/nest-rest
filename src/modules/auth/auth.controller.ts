@@ -1,6 +1,6 @@
 import { Controller, Post, Put, Get, Delete, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { Public } from '@/decorators';
 import { AuthService } from '@/modules/auth/auth.service';
 import { UserEntity } from '@/modules/user/user.entity';
@@ -12,6 +12,7 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
+  GetSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Controller('auth')
@@ -24,7 +25,7 @@ export class AuthController {
   @Public()
   @ApiOkResponse({ type: UserEntity })
   @Post('signup')
-  signUp(@Body() payload: SignUpDto) {
+  signUp(@Body() payload: SignUpDto): Promise<UserEntity> {
     return this.authService.signUp(payload);
   }
 
@@ -34,7 +35,10 @@ export class AuthController {
   @Public()
   @ApiOkResponse({ type: SignInResponseDto })
   @Post('signin')
-  signIn(@Res({ passthrough: true }) res: Response, @Body() payload: SignInDto) {
+  signIn(
+    @Res({ passthrough: true }) res: Response,
+    @Body() payload: SignInDto,
+  ): Promise<SignInResponseDto> {
     return this.authService.signIn(res, payload);
   }
 
@@ -43,7 +47,7 @@ export class AuthController {
   // #=================#
   @ApiOkResponse({ type: String, example: HttpStatus.OK })
   @Delete('signout')
-  signOut(@Res({ passthrough: true }) res: Response) {
+  signOut(@Res({ passthrough: true }) res: Response): HttpStatus {
     return this.authService.signOut(res);
   }
 
@@ -53,7 +57,7 @@ export class AuthController {
   @Public()
   @ApiOkResponse({ type: SignInResponseDto })
   @Post('refresh-token')
-  refreshToken(@Req() req: TRequest, @Body() payload: RefreshTokenDto) {
+  refreshToken(@Req() req: TRequest, @Body() payload: RefreshTokenDto): Promise<SignInResponseDto> {
     return this.authService.refreshToken(req, payload);
   }
 
@@ -66,16 +70,16 @@ export class AuthController {
     @Req() req: TRequest,
     @Res({ passthrough: true }) res: Response,
     @Body() payload: UpdatePasswordDto,
-  ) {
+  ): Promise<SignInResponseDto> {
     return this.authService.updatePassword(req, res, payload);
   }
 
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  @ApiOkResponse({ type: UserEntity })
+  @ApiOkResponse({ type: OmitType(UserEntity, ['password', 'passwordTimestamp']) })
   @Get('/profile')
-  getProfile(@Req() req: TRequest) {
+  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password' | 'passwordTimestamp'> {
     return this.authService.getProfile(req);
   }
 
@@ -84,7 +88,19 @@ export class AuthController {
   // #========================#
   @ApiOkResponse({ type: UpdateProfileDto })
   @Put('/profile')
-  updateProfile(@Req() req: TRequest, @Body() payload: UpdateProfileDto) {
+  updateProfile(
+    @Req() req: TRequest,
+    @Body() payload: UpdateProfileDto,
+  ): Promise<UpdateProfileDto> {
     return this.authService.updateProfile(req, payload);
+  }
+
+  // # ====================== #
+  // # ==> GET SIGNED URL <== #
+  // # ====================== #
+  @ApiOkResponse({ type: String })
+  @Get('/signed-url')
+  getSignedUrl(@Req() req: TRequest, @Body() payload: GetSignedUrlDto): Promise<string> {
+    return this.authService.getSignedUrl(req, payload);
   }
 }

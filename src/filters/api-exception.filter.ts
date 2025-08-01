@@ -10,7 +10,7 @@ export const formatLoggerMessage = (stack: any, message: string) => {
 };
 
 @Catch()
-export class APIExceptionsFilter implements ExceptionFilter {
+export class ApiExceptionsFilter implements ExceptionFilter {
   constructor(private logger: Logger) {}
 
   catch(exception: { status: number; message: string; stack: any }, host: ArgumentsHost) {
