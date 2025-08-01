@@ -2,7 +2,8 @@
 
 - NestJs + Typescript + Eslint + Prettier
 - TypeORM + PostgreSQL
-- Swagger
+- RestAPI + Swagger
+- Elastic Search
 
 ## Getting Started
 
