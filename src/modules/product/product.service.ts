@@ -29,7 +29,7 @@ export class ProductService extends BaseService<ProductEntity> {
     const newProduct = await this.repository.save(payload);
 
     // Create index for the new product
-    await this.searchProductService.createIndex(newProduct);
+    await this.searchProductService.index(newProduct);
 
     return newProduct;
   }
@@ -51,7 +51,7 @@ export class ProductService extends BaseService<ProductEntity> {
     const updatedProduct = { ...existedProduct, ...payload };
 
     // Update index for the new product
-    await this.searchProductService.createIndex(updatedProduct);
+    await this.searchProductService.index(updatedProduct);
 
     return updatedProduct;
   }
@@ -67,7 +67,7 @@ export class ProductService extends BaseService<ProductEntity> {
     await this.repository.delete(id);
 
     // Delete index for the product
-    await this.searchProductService.deleteIndex(id);
+    await this.searchProductService.delete(id);
 
     return id;
   }
@@ -86,10 +86,17 @@ export class ProductService extends BaseService<ProductEntity> {
     }
 
     const paginationData = await this.getPaginatedRecords(restParams, () => {
-      // Filter based on productIds
-      if (productIds.length)
+      // Filter based on productIds [ElasticSearch]
+      if (productIds.length) {
         this.pagingQueryBuilder.andWhere(`${this.entityName}.id IN (:...productIds)`, {
           productIds,
+        });
+      }
+
+      // Filter based on keySearch
+      else if (keySearch)
+        this.pagingQueryBuilder.andWhere(`${this.entityName}.name = :keySearch`, {
+          keySearch,
         });
     });
 

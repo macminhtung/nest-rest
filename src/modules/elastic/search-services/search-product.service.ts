@@ -5,22 +5,73 @@ import { ProductEntity } from '@/modules/product/product.entity';
 
 @Injectable()
 export class SearchProductService {
-  private readonly indexName = EEntity.PRODUCT;
-
   constructor(private readonly service: ElasticsearchService) {}
 
-  // #======================#
-  // # ==> CREATE INDEX <== #
-  // #======================#
-  async createIndex(product: ProductEntity) {
-    const { id, name, description } = product;
-    return await this.service.index({ index: this.indexName, id, document: { name, description } });
+  private readonly indexName = EEntity.PRODUCT;
+
+  // #==========================#
+  // # ==> INITIALIZE INDEX <== #
+  // #==========================#
+  async onModuleInit() {
+    const indexExists = await this.service.indices.exists({ index: this.indexName });
+    // if (indexExists) await this.service.indices.delete({ index: this.indexName });
+
+    if (!indexExists)
+      await this.service.indices.create({
+        index: this.indexName,
+        settings: {
+          analysis: {
+            analyzer: {
+              product_analyzer: {
+                type: 'custom',
+                filter: ['lowercase'],
+                tokenizer: 'product_tokenizer',
+              },
+            },
+            tokenizer: {
+              product_tokenizer: {
+                type: 'edge_ngram',
+                min_gram: 2,
+                max_gram: 20,
+                token_chars: ['letter', 'digit', 'symbol'],
+              },
+            },
+          },
+        },
+        mappings: {
+          properties: {
+            name: {
+              type: 'text',
+              analyzer: 'product_analyzer',
+              search_analyzer: 'product_analyzer',
+            },
+            description: {
+              type: 'text',
+              analyzer: 'product_analyzer',
+              search_analyzer: 'product_analyzer',
+            },
+          },
+        },
+      });
   }
 
-  // #======================#
-  // # ==> DELETE INDEX <== #
-  // #======================#
-  async deleteIndex(id: string) {
+  // #===============#
+  // # ==> INDEX <== #
+  // #===============#
+  async index(product: ProductEntity) {
+    const { id, name, description } = product;
+
+    return await this.service.index({
+      index: this.indexName,
+      id,
+      document: { name, description },
+    });
+  }
+
+  // #================#
+  // # ==> DELETE <== #
+  // #================#
+  async delete(id: string) {
     return await this.service.delete({ index: this.indexName, id });
   }
 
