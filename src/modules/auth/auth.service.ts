@@ -18,7 +18,7 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
-  GetSignedUrlDto,
+  CreateSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Injectable()
@@ -274,14 +274,14 @@ export class AuthService extends BaseService<UserEntity> {
     return payload;
   }
 
-  // # ====================== #
-  // # ==> GET SIGNED URL <== #
-  // # ====================== #
-  async getSignedUrl(req: TRequest, payload: GetSignedUrlDto) {
+  // # ========================= #
+  // # ==> CREATE SIGNED URL <== #
+  // # ========================= #
+  async createSignedUrl(req: TRequest, payload: CreateSignedUrlDto) {
     const { id: authId } = req.authUser;
     const { filename, contentType } = payload;
 
-    return await this.awsS3Service.getSignedUrl({
+    return await this.awsS3Service.createSignedUrl({
       key: `${authId}/${filename}`,
       contentType,
     });

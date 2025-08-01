@@ -12,7 +12,7 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
-  GetSignedUrlDto,
+  CreateSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Controller('auth')
@@ -95,12 +95,12 @@ export class AuthController {
     return this.authService.updateProfile(req, payload);
   }
 
-  // # ====================== #
-  // # ==> GET SIGNED URL <== #
-  // # ====================== #
+  // # ========================= #
+  // # ==> CREATE SIGNED URL <== #
+  // # ========================= #
   @ApiOkResponse({ type: String })
-  @Get('/signed-url')
-  getSignedUrl(@Req() req: TRequest, @Body() payload: GetSignedUrlDto): Promise<string> {
-    return this.authService.getSignedUrl(req, payload);
+  @Post('/signed-url')
+  createSignedUrl(@Req() req: TRequest, @Body() payload: CreateSignedUrlDto): Promise<string> {
+    return this.authService.createSignedUrl(req, payload);
   }
 }

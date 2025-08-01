@@ -19,18 +19,18 @@ export class AwsS3Service {
 
   private awsConfig: TEnvConfiguration['aws'];
 
-  async getSignedUrl(payload: { key: string; contentType?: string }): Promise<string> {
+  async createSignedUrl(payload: { key: string; contentType?: string }): Promise<string> {
     const { key, contentType = 'application/octet-stream' } = payload;
-    const url = await getSignedUrl(
+    const signedUrl = await getSignedUrl(
       this.s3Client,
       new PutObjectCommand({
         Bucket: this.awsConfig.s3BucketName,
         Key: key,
         ContentType: contentType,
       }),
-      { expiresIn: 3600 },
+      { expiresIn: 5 * 60 },
     );
 
-    return url;
+    return signedUrl;
   }
 }
