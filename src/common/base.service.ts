@@ -48,9 +48,12 @@ export class BaseService<E extends ObjectLiteral> {
       await queryRunner.startTransaction();
 
       // Run callback function
-      const entity = await processFunc();
+      const resData = await processFunc();
 
-      return entity;
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      return resData;
 
       // Rollback
     } catch (err) {
