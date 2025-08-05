@@ -23,7 +23,7 @@ import type { TEnvConfiguration } from '@/config';
     // #=======================#
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
       load: [loadENVsFunc],
       validationSchema: ENV_VALIDATION,
     }),
