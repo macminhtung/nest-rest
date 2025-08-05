@@ -1,7 +1,7 @@
 import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateSignedUrlDto {
+export class GeneratePreSignedUrlDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

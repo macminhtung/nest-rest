@@ -19,7 +19,7 @@ export class AwsS3Service {
 
   private awsConfig: TEnvConfiguration['aws'];
 
-  async createSignedUrl(payload: { key: string; contentType?: string }): Promise<string> {
+  async generatePreSignedUrl(payload: { key: string; contentType?: string }): Promise<string> {
     const { key, contentType = 'application/octet-stream' } = payload;
     const signedUrl = await getSignedUrl(
       this.s3Client,

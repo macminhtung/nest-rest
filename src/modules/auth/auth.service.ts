@@ -18,7 +18,7 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
-  CreateSignedUrlDto,
+  GeneratePreSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Injectable()
@@ -154,7 +154,7 @@ export class AuthService extends BaseService<UserEntity> {
     const accessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      // options: { expiresIn: 5 },
+      options: { expiresIn: 5 },
     });
 
     // Generate refreshToken
@@ -205,7 +205,7 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { id, email, passwordTimestamp, isAccessToken: true },
-      // options: { expiresIn: 5 },
+      options: { expiresIn: 5 },
     });
 
     return { accessToken: newAccessToken };
@@ -276,14 +276,14 @@ export class AuthService extends BaseService<UserEntity> {
     return payload;
   }
 
-  // # ========================= #
-  // # ==> CREATE SIGNED URL <== #
-  // # ========================= #
-  async createSignedUrl(req: TRequest, payload: CreateSignedUrlDto) {
+  // # =============================== #
+  // # ==> GENERATE PRE-SIGNED URL <== #
+  // # =============================== #
+  async generatePreSignedUrl(req: TRequest, payload: GeneratePreSignedUrlDto) {
     const { id: authId } = req.authUser;
     const { filename, contentType } = payload;
 
-    return await this.awsS3Service.createSignedUrl({
+    return await this.awsS3Service.generatePreSignedUrl({
       key: `${authId}/${filename}`,
       contentType,
     });
