@@ -34,25 +34,20 @@ export class UserService extends BaseService<UserEntity> {
   // # ==> GET PAGINATED USERS <== #
   // #=============================#
   async getPaginatedUsers(queryParams: GetUsersPaginatedDto) {
-    const paginationData = await this.getPaginatedRecords(queryParams, () => {
+    const paginationData = await this.getPaginatedRecords(queryParams, (qb) => {
       const { keySearch, roleIds } = queryParams;
       const alias = this.entityName;
 
-      this.pagingQueryBuilder.leftJoinAndSelect(`${alias}.role`, 'role');
+      qb.leftJoinAndSelect(`${alias}.role`, 'role');
 
       // Filter based on roleIds
-      if (roleIds?.length)
-        this.pagingQueryBuilder.andWhere(`${alias}.roleId IN (:...roleIds)`, {
-          roleIds,
-        });
+      if (roleIds?.length) qb.andWhere(`${alias}.roleId IN (:...roleIds)`, { roleIds });
 
       // Query based on keySearch
       if (keySearch)
-        this.pagingQueryBuilder.andWhere(
-          `(${alias}.firstName ILIKE :keySearch
-          OR ${alias}.lastName ILIKE :keySearch)`,
-          { keySearch: `%${keySearch}%` },
-        );
+        qb.andWhere(`(${alias}.firstName ILIKE :keySearch OR ${alias}.lastName ILIKE :keySearch)`, {
+          keySearch: `%${keySearch}%`,
+        });
     });
 
     return paginationData;

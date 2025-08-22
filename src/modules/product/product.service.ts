@@ -111,19 +111,14 @@ export class ProductService extends BaseService<ProductEntity> {
       productIds = items.map((i) => i.id!);
     }
 
-    const paginationData = await this.getPaginatedRecords(restParams, () => {
+    const paginationData = await this.getPaginatedRecords(restParams, (qb) => {
       // Filter based on productIds [ElasticSearch]
       if (productIds.length) {
-        this.pagingQueryBuilder.andWhere(`${this.entityName}.id IN (:...productIds)`, {
-          productIds,
-        });
+        qb.andWhere(`${this.entityName}.id IN (:...productIds)`, { productIds });
       }
 
       // Filter based on keySearch
-      else if (keySearch)
-        this.pagingQueryBuilder.andWhere(`${this.entityName}.name = :keySearch`, {
-          keySearch,
-        });
+      else if (keySearch) qb.andWhere(`${this.entityName}.name = :keySearch`, { keySearch });
     });
 
     return paginationData;
