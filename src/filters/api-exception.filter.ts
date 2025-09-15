@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 
-export const formatLoggerMessage = (stack: any, message: string) => {
+export const formatLoggerMessage = (stack: string, message: string) => {
   const errorLines: string[] = stack?.split('\n')?.slice(1, 4);
   return `${message}\n${errorLines?.reduce(
     (prevV: string, curV: string, idx: number) =>
@@ -13,7 +13,7 @@ export const formatLoggerMessage = (stack: any, message: string) => {
 export class ApiExceptionsFilter implements ExceptionFilter {
   constructor(private logger: Logger) {}
 
-  catch(exception: { status: number; message: string; stack: any }, host: ArgumentsHost) {
+  catch(exception: { status: number; message: string; stack: string }, host: ArgumentsHost) {
     // Format logger message
     const { status = 400, message, stack } = exception;
 

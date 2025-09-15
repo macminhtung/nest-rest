@@ -22,14 +22,14 @@ export const DEFAULT_PAGE_NUM = 1;
 export const DEFAULT_PAGE_TAKE = 30;
 
 export function IsBefore(property: string, validationOptions?: ValidationOptions) {
-  return (object: any, propertyName: string) => {
+  return (object: object, propertyName: string) => {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       constraints: [property],
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: Date, args: ValidationArguments) {
           const [relatedPropertyName] = args.constraints;
           const relatedValue = args.object?.[relatedPropertyName];
           return relatedValue ? value <= relatedValue : true;
