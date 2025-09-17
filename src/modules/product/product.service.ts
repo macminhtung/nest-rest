@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
-import { v7 as uuidv7 } from 'uuid';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
 import { BaseService } from '@/common/base.service';
 import { GetPaginatedRecordsDto } from '@/common/dtos';
 import { ProductEntity } from '@/modules/product/product.entity';
@@ -12,7 +11,7 @@ import { CreateProductDto } from '@/modules/product/dtos';
 export class ProductService extends BaseService<ProductEntity> {
   constructor(
     @InjectRepository(ProductEntity)
-    public readonly repository: Repository<ProductEntity>,
+    public readonly repository: EntityRepository<ProductEntity>,
 
     private readonly searchProductService: SearchProductService,
   ) {
@@ -24,20 +23,20 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async createProduct(payload: CreateProductDto) {
     // Check conflict the product name
-    await this.checkConflict({ where: { name: payload.name } });
+    await this.checkConflict({ filter: { name: payload.name } });
 
     // Start transaction
-    const queryRunner = this.dataSource.createQueryRunner();
+    const txManager = this.entityManager.fork();
     const resData = await this.handleTransactionAndRelease(
-      queryRunner,
+      txManager,
 
       // Process function
       async () => {
+        // Identify the transaction repository
+        const txRepository = txManager.getRepository(ProductEntity);
+
         // Create new product
-        const newProduct = await queryRunner.manager.save(ProductEntity, {
-          id: uuidv7(),
-          ...payload,
-        });
+        const newProduct = await this.create({ entityData: payload, txRepository });
 
         // Create index for the new product
         await this.searchProductService.index(newProduct);
@@ -54,20 +53,23 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async updateProduct(id: string, payload: CreateProductDto) {
     // Check the product already exists
-    const existedProduct = await this.checkExist({ where: { id } });
+    const existedProduct = await this.checkExist({ filter: { id } });
 
     // Check conflict the product name
-    await this.checkConflict({ where: { name: payload.name, id: Not(id) } });
+    await this.checkConflict({ filter: { name: payload.name, id: { $not: id } } });
 
     // Start transaction
-    const queryRunner = this.dataSource.createQueryRunner();
+    const txManager = this.entityManager.fork();
     await this.handleTransactionAndRelease(
-      queryRunner,
+      txManager,
 
       // Process function
       async () => {
+        // Identify the transaction repository
+        const txRepository = txManager.getRepository(ProductEntity);
+
         // Update product
-        await queryRunner.manager.update(ProductEntity, id, payload);
+        await this.update({ filter: { id }, entityData: payload, txRepository });
 
         // Update index for the new product
         await this.searchProductService.index({ id, ...payload });
@@ -82,17 +84,20 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async deleteProduct(id: string) {
     // Check the product already exists
-    await this.checkExist({ where: { id } });
+    await this.checkExist({ filter: { id } });
 
     // Start transaction
-    const queryRunner = this.dataSource.createQueryRunner();
+    const txManager = this.entityManager.fork();
     await this.handleTransactionAndRelease(
-      queryRunner,
+      txManager,
 
       // Process function
       async () => {
+        // Identify the transaction repository
+        const txRepository = txManager.getRepository(ProductEntity);
+
         // Delete product
-        await queryRunner.manager.delete(ProductEntity, id);
+        await this.delete({ filter: { id }, txRepository });
 
         // Delete index for the product
         await this.searchProductService.delete(id);
@@ -118,11 +123,11 @@ export class ProductService extends BaseService<ProductEntity> {
     const paginationData = await this.getPaginatedRecords(restParams, (qb) => {
       // Filter based on productIds [ElasticSearch]
       if (productIds.length) {
-        qb.andWhere(`${this.entityName}.id IN (:...productIds)`, { productIds });
+        qb.andWhere({ id: { $in: productIds } });
       }
 
       // Filter based on keySearch
-      else if (keySearch) qb.andWhere(`${this.entityName}.name = :keySearch`, { keySearch });
+      else if (keySearch) qb.andWhere({ name: { $ilike: `%${keySearch}%` } });
     });
 
     return paginationData;

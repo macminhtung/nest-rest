@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { loadENVsFunc, ENV_VALIDATION } from '@/config';
 import { ApiLoggingInterceptor } from '@/interceptors';
 import { AuthGuard } from '@/guards';
@@ -14,7 +11,7 @@ import { UserModule } from '@/modules/user/user.module';
 import { ProductModule } from '@/modules/product/product.module';
 import { SharedModule } from '@/modules/shared/shared.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
-import type { TEnvConfiguration } from '@/config';
+import { MikroORMModule } from '@/modules/mikro-orm/mikro-orm.module';
 
 @Module({
   imports: [
@@ -33,30 +30,10 @@ import type { TEnvConfiguration } from '@/config';
     // #==============================#
     ElasticModule,
 
-    // #=========================#
-    // # ==> TYPE_ORM MODULE <== #
-    // #=========================#
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService<TEnvConfiguration>) =>
-        await configService.get('database')!,
-      dataSourceFactory: async (options) => {
-        const dataSource = new DataSource({
-          entities: ['dist/**/*.entity{.ts,.js}'],
-          migrations: ['dist/migrations/*{.ts,.js}'],
-          type: 'postgres',
-          migrationsRun: false,
-          synchronize: true,
-          namingStrategy: new SnakeNamingStrategy(),
-          logging: true,
-          ...options,
-        });
-
-        await dataSource.initialize();
-        await dataSource.runMigrations();
-        return dataSource;
-      },
-    }),
+    // #==========================#
+    // # ==> MIKRO_ORM MODULE <== #
+    // #==========================#
+    MikroORMModule,
 
     SharedModule,
     UserModule,

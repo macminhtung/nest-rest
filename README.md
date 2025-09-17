@@ -1,7 +1,7 @@
 ## Technologies used
 
-- NestJs + Typescript + Eslint + Prettier
-- TypeORM + PostgreSQL
+- NestJs [Fastify] + Typescript + Eslint + Prettier
+- MikroORM + PostgreSQL
 - RestAPI + Swagger
 - Elastic Search
 

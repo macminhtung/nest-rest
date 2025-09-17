@@ -1,48 +1,50 @@
-import { Column, PrimaryColumn, Entity, ManyToOne } from 'typeorm';
+import { Entity, PrimaryKey, Property, ManyToOne, Index } from '@mikro-orm/core';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EEntity } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 
-@Entity({ name: EEntity.USER })
+@Entity({ tableName: EEntity.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
-  @PrimaryColumn('uuid')
+  @PrimaryKey({ type: 'uuid' })
   id: string;
 
   @ApiProperty()
-  @Column({ default: '' })
-  avatar: string;
+  @Property({ default: '' })
+  avatar?: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Property({ unique: true })
   email: string;
 
-  @Column({ select: false })
+  @Property({ hidden: true })
   password: string;
 
   @ApiProperty()
-  @Column()
+  @Property()
+  @Index()
   firstName: string;
 
   @ApiProperty()
-  @Column()
+  @Property()
+  @Index()
   lastName: string;
 
-  @Column({ select: false, default: new Date().valueOf().toString() })
+  @Property({ default: new Date().valueOf().toString() })
   passwordTimestamp: string; // ==> Check JWT after password change
 
   @ApiProperty()
-  @Column({ default: false })
+  @Property({ default: false })
   isEmailVerified: boolean;
 
   // Relation columns
   @ApiProperty({ type: 'integer' })
-  @Column({ type: 'int2' })
+  @Property({ type: 'int4', persist: false })
   roleId: number;
 
   // Relation tables
   @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
-  role: RoleEntity;
+  role?: RoleEntity;
 }

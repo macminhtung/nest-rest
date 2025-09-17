@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/postgresql';
 import { BaseService } from '@/common/base.service';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 
@@ -8,7 +8,7 @@ import { RoleEntity } from '@/modules/user/role/role.entity';
 export class RoleService extends BaseService<RoleEntity> {
   constructor(
     @InjectRepository(RoleEntity)
-    public readonly repository: Repository<RoleEntity>,
+    public readonly repository: EntityRepository<RoleEntity>,
   ) {
     super(repository);
   }

@@ -15,7 +15,7 @@ export class RolesGuard implements CanActivate {
     if (isPublicAPI) return true;
 
     const request = context.switchToHttp().getRequest<TRequest>();
-    const roleName = request.authUser.role.name;
+    const roleName = request.authUser.role?.name || '';
 
     // Get context scopeNames
     const contextRoleNames = this.reflector.get<string[]>(EMetadataKey.ROLES, contextFunc);
