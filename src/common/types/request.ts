@@ -1,4 +1,4 @@
-import type { Request } from 'express';
+import type { FastifyRequest } from 'fastify';
 import { UserEntity } from '@/modules/user/user.entity';
 
-export type TRequest = Request & { authUser: UserEntity };
+export type TRequest = FastifyRequest & { authUser: UserEntity };

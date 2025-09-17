@@ -1,5 +1,5 @@
 import { Controller, Post, Put, Get, Delete, Body, Req, Res, HttpStatus } from '@nestjs/common';
-import type { Response } from 'express';
+import type { FastifyReply } from 'fastify';
 import { ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { Public } from '@/decorators';
 import { AuthService } from '@/modules/auth/auth.service';
@@ -36,7 +36,7 @@ export class AuthController {
   @ApiOkResponse({ type: SignInResponseDto })
   @Post('signin')
   signIn(
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: FastifyReply,
     @Body() payload: SignInDto,
   ): Promise<SignInResponseDto> {
     return this.authService.signIn(res, payload);
@@ -47,7 +47,7 @@ export class AuthController {
   // #=================#
   @ApiOkResponse({ type: String, example: HttpStatus.OK })
   @Delete('signout')
-  signOut(@Res({ passthrough: true }) res: Response): HttpStatus {
+  signOut(@Res({ passthrough: true }) res: FastifyReply): HttpStatus {
     return this.authService.signOut(res);
   }
 
@@ -68,7 +68,7 @@ export class AuthController {
   @Put('password')
   updatePassword(
     @Req() req: TRequest,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: FastifyReply,
     @Body() payload: UpdatePasswordDto,
   ): Promise<SignInResponseDto> {
     return this.authService.updatePassword(req, res, payload);

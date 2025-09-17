@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
-import type { Response } from 'express';
+import type { FastifyReply } from 'fastify';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { hash, compare } from 'bcrypt';
@@ -87,12 +87,11 @@ export class AuthService extends BaseService<UserEntity> {
   // #=======================================#
   // # ==> SET REFRESH_TOKEN INTO COOKIE <== #
   // #=======================================#
-  setRefreshTokenIntoCookie(res: Response, refreshToken: string) {
+  setRefreshTokenIntoCookie(reply: FastifyReply, refreshToken: string) {
     const isProductionMode = process.env.NODE_ENV === 'prod';
 
-    res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
+    reply.setCookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
       domain: isProductionMode ? process.env.DOMAIN : undefined,
-      path: '/',
       secure: isProductionMode,
       httpOnly: true,
       sameSite: 'lax',
@@ -133,7 +132,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #================#
   // # ==> SIGNIN <== #
   // #================#
-  async signIn(res: Response, payload: SignInDto): Promise<SignInResponseDto> {
+  async signIn(res: FastifyReply, payload: SignInDto): Promise<SignInResponseDto> {
     const { email, password } = payload;
 
     // Check email already exists
@@ -175,7 +174,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #=================#
   // # ==> SIGNOUT <== #
   // #=================#
-  signOut(res: Response): HttpStatus {
+  signOut(res: FastifyReply): HttpStatus {
     // Clear refreshToken into cookie
     this.setRefreshTokenIntoCookie(res, '');
 
@@ -186,7 +185,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> REFRESH TOKEN <== #
   // #=======================#
   async refreshToken(req: TRequest, payload: RefreshTokenDto) {
-    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN];
+    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     const { accessToken } = payload;
 
     // Check refreshToken valid
@@ -216,12 +215,12 @@ export class AuthService extends BaseService<UserEntity> {
   // #=========================#
   // # ==> UPDATE PASSWORD <== #
   // #=========================#
-  async updatePassword(req: TRequest, res: Response, payload: UpdatePasswordDto) {
+  async updatePassword(req: TRequest, res: FastifyReply, payload: UpdatePasswordDto) {
     const { id: authId, email, password } = req.authUser;
     const { oldPassword, newPassword } = payload;
 
     // Check refreshToken valid
-    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN];
+    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     await this.checkToken({
       type: ETokenType.REFRESH_TOKEN,
       token: refreshToken,
