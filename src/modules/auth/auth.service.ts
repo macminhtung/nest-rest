@@ -3,6 +3,7 @@ import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { hash, compare } from 'bcrypt';
+import { v7 as uuidv7 } from 'uuid';
 import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
 import { ECookieKey } from '@/common/enums';
 import type { TRequest } from '@/common/types';
@@ -116,6 +117,7 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Create a new user
     const newUser = await this.repository.save({
+      id: uuidv7(),
       email,
       password: hashPassword,
       firstName,

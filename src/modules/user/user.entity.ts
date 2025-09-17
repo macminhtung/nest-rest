@@ -1,4 +1,4 @@
-import { Column, PrimaryGeneratedColumn, Entity, ManyToOne } from 'typeorm';
+import { Column, PrimaryColumn, Entity, ManyToOne } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EEntity } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
@@ -7,7 +7,7 @@ import { RoleEntity } from '@/modules/user/role/role.entity';
 @Entity({ name: EEntity.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id: string;
 
   @ApiProperty()

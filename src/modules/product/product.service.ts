@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
+import { v7 as uuidv7 } from 'uuid';
 import { BaseService } from '@/common/base.service';
 import { GetPaginatedRecordsDto } from '@/common/dtos';
 import { ProductEntity } from '@/modules/product/product.entity';
@@ -33,7 +34,10 @@ export class ProductService extends BaseService<ProductEntity> {
       // Process function
       async () => {
         // Create new product
-        const newProduct = await queryRunner.manager.save(ProductEntity, payload);
+        const newProduct = await queryRunner.manager.save(ProductEntity, {
+          id: uuidv7(),
+          ...payload,
+        });
 
         // Create index for the new product
         await this.searchProductService.index(newProduct);

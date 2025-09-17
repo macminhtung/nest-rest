@@ -7,6 +7,8 @@ import {
   DataSource,
 } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { ERROR_MESSAGES } from '@/common/constants';
+import { EOrder } from '@/common/enums';
 import {
   ConflictException,
   Injectable,
@@ -20,8 +22,6 @@ import {
   NUM_LIMIT_RECORDS,
   PaginatedResponseDto,
 } from '@/common/dtos';
-import { ERROR_MESSAGES } from '@/common/constants';
-import { EOrder } from '@/common/enums';
 
 @Injectable()
 export class BaseService<E extends ObjectLiteral> {
