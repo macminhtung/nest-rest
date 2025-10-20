@@ -4,12 +4,12 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { hash, compare } from 'bcrypt';
 import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
-import { ECookieKey } from '@/common/enums';
+import { ECookieKey, ETokenType } from '@/common/enums';
 import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { JwtService, ETokenType, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
+import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 
 import {
   SignUpDto,

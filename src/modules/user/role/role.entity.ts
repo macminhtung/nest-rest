@@ -11,7 +11,7 @@ export class RoleEntity extends BaseEntity {
 
   @ApiProperty()
   @Enum({ type: 'enum', items: () => ERoleName })
-  name: string;
+  name: ERoleName;
 
   @ApiProperty()
   @Property({ nullable: true })

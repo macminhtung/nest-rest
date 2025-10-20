@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import type { TRequest } from '@/common/types';
 import { EMetadataKey } from '@/common/enums';
 import { AuthService } from '@/modules/auth/auth.service';
-import { ETokenType } from '@/modules/shared/services';
+import { ETokenType } from '@/common/enums';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
