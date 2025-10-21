@@ -5,7 +5,7 @@ import { BaseEntity } from '@/common/base.entity';
 import { UserEntity } from '@/modules/user/user.entity';
 
 @Entity({ tableName: EEntity.TOKEN_MANAGEMENT })
-@Index({ properties: ['userId', 'type', 'encryptedToken'] })
+@Index({ properties: ['userId', 'type', 'hashToken'] })
 export class TokenManagementEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryKey({ type: 'uuid' })
@@ -13,19 +13,23 @@ export class TokenManagementEntity extends BaseEntity {
 
   @ApiProperty()
   @Property()
-  encryptedToken: string;
+  hashToken: string;
 
   @ApiProperty()
   @Enum({ type: 'enum', items: () => ETokenType })
   type: ETokenType;
 
-  // Relation columns
+  @ApiProperty()
+  @Property({ type: 'uuid', nullable: true })
+  refreshTokenId?: string;
+
+  // ==> [RELATION] COLUMNS <==
   @ApiProperty()
   @Property({ type: 'uuid', persist: false })
-  userId: string;
+  userId?: string;
 
-  // Relation tables
+  // ==> [RELATION] TABLES <==
   @ApiPropertyOptional()
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { fieldName: 'user_id' })
   user?: UserEntity;
 }

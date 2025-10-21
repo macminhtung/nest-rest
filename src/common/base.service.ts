@@ -49,9 +49,9 @@ export class BaseService<E extends object> {
     const entity = repository.create({ id: uuidv7(), ...entityData });
 
     // Insert the entity
-    const newRecord = await repository.upsert(entity);
+    await repository.insert(entity);
 
-    return newRecord;
+    return entity;
   }
 
   // #================#

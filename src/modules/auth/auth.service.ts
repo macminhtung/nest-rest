@@ -9,13 +9,16 @@ import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
+import { RoleEntity } from '@/modules/user/role/role.entity';
+import { TokenManagementEntity } from '@/modules/user/token-management/token-management.entity';
+import { TokenManagementService } from '@/modules/user/token-management/token-management.service';
 import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 
 import {
   SignUpDto,
   SignInDto,
   SignInResponseDto,
-  RefreshTokenDto,
+  RefreshAccessTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
   GeneratePreSignedUrlDto,
@@ -28,6 +31,7 @@ export class AuthService extends BaseService<UserEntity> {
     public readonly repository: EntityRepository<UserEntity>,
 
     private userService: UserService,
+    private tokenManagementService: TokenManagementService,
     private jwtService: JwtService,
     private awsS3Service: AwsS3Service,
   ) {
@@ -37,14 +41,21 @@ export class AuthService extends BaseService<UserEntity> {
   // #=====================#
   // # ==> CHECK TOKEN <== #
   // #=====================#
-  async checkToken<T extends ETokenType>(payload: TVerifyToken<T>): Promise<UserEntity> {
+  async checkToken<T extends ETokenType>(
+    payload: TVerifyToken<T> & { errorMessage?: string },
+  ): Promise<UserEntity> {
+    const { type, token, errorMessage } = payload;
+
     // Verify token
-    const decodeToken = this.jwtService.verifyToken(payload);
+    const decodeToken = this.jwtService.verifyToken({ type, token });
+    const { id: userId } = decodeToken;
+
+    // Generate hashToken
+    const hashToken = this.tokenManagementService.generateHashToken(token);
 
     // Check user already exists
-    const { id, passwordTimestamp } = decodeToken;
     const existedUser = await this.checkExist({
-      filter: { id },
+      filter: { id: userId, tokenManagements: { type, hashToken } },
       options: {
         populate: ['role'],
         fields: [
@@ -56,15 +67,11 @@ export class AuthService extends BaseService<UserEntity> {
           'lastName',
           'roleId',
           'isEmailVerified',
-          'passwordTimestamp',
           'role',
         ],
       },
+      errorMessage,
     });
-
-    // Check passwordTimestamp is correct
-    if (passwordTimestamp !== existedUser.passwordTimestamp)
-      throw new BadRequestException({ message: ERROR_MESSAGES.TIMESTAMP_INCORRECT });
 
     return existedUser;
   }
@@ -94,8 +101,8 @@ export class AuthService extends BaseService<UserEntity> {
     reply.setCookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
       domain: isProductionMode ? process.env.DOMAIN : undefined,
       secure: isProductionMode,
-      httpOnly: true,
-      sameSite: 'lax',
+      httpOnly: isProductionMode,
+      sameSite: isProductionMode ? 'strict' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
@@ -109,9 +116,6 @@ export class AuthService extends BaseService<UserEntity> {
     // Check if email has conflict
     await this.checkConflict({ filter: { email } });
 
-    // Create the passwordTimestamp
-    const passwordTimestamp = new Date().valueOf().toString();
-
     // Hash the password
     const hashPassword = await this.generateHashPassword(password);
 
@@ -123,8 +127,7 @@ export class AuthService extends BaseService<UserEntity> {
         firstName,
         lastName,
         isEmailVerified: true,
-        passwordTimestamp,
-        roleId: DEFAULT_ROLES.USER.id,
+        role: this.entityManager.getReference(RoleEntity, DEFAULT_ROLES.USER.id),
       },
     });
 
@@ -140,9 +143,9 @@ export class AuthService extends BaseService<UserEntity> {
     // Check email already exists
     const existedUser = await this.checkExist({
       filter: { email, isEmailVerified: true },
-      options: { fields: ['id', 'password', 'passwordTimestamp'] },
+      options: { fields: ['id', 'password'] },
     });
-    const { id, passwordTimestamp } = existedUser;
+    const { id } = existedUser;
 
     // Check password is valid
     const isValidPassword = await this.compareHashPassword({
@@ -152,48 +155,108 @@ export class AuthService extends BaseService<UserEntity> {
     if (!isValidPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
-    // Generate accessToken
-    const commonTokenPayload = { id, email, passwordTimestamp };
-    const accessToken = this.jwtService.generateToken({
+    // Generate new accessToken
+    const commonTokenPayload = { id, email };
+    const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
       options: { expiresIn: 5 },
     });
 
-    // Generate refreshToken
-    const refreshToken = this.jwtService.generateToken({
+    // Generate new refreshToken
+    const newRefreshToken = this.jwtService.generateToken({
       type: ETokenType.REFRESH_TOKEN,
       tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
       options: { expiresIn: '30 days' },
     });
 
-    // Set refreshToken into cookie
-    this.setRefreshTokenIntoCookie(res, refreshToken);
+    // Start transaction
+    const txManager = this.entityManager.fork();
+    await this.handleTransactionAndRelease(
+      txManager,
 
-    return { accessToken };
+      // Process function
+      async () => {
+        // Identify the transaction repository
+        const txRepository = txManager.getRepository(TokenManagementEntity);
+
+        // Store new token pair
+        await this.tokenManagementService.storeNewTokenPair({
+          txRepository,
+          userId: id,
+          newRefreshToken,
+          newAccessToken,
+        });
+      },
+    );
+
+    // Set refreshToken into cookie
+    this.setRefreshTokenIntoCookie(res, newRefreshToken);
+
+    return { accessToken: newAccessToken };
   }
 
   // #=================#
   // # ==> SIGNOUT <== #
   // #=================#
-  signOut(res: FastifyReply): HttpStatus {
+  async signOut(req: TRequest, res: FastifyReply): Promise<HttpStatus> {
+    const { id: authId } = req.authUser;
+    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
+
+    // Check the refreshToken already exist
+    const { id: refreshTokenId } = await this.tokenManagementService.checkExist({
+      filter: {
+        userId: authId,
+        type: ETokenType.REFRESH_TOKEN,
+        hashToken: this.tokenManagementService.generateHashToken(refreshToken),
+      },
+    });
+
+    // Delete refreshToken and accessToken
+    await this.tokenManagementService.delete({
+      filter: [
+        { id: refreshTokenId }, // ==> Delete refreshToken
+        { refreshTokenId, userId: authId, type: ETokenType.ACCESS_TOKEN }, // ==> Delete accessToken
+      ],
+    });
+
     // Clear refreshToken into cookie
     this.setRefreshTokenIntoCookie(res, '');
 
     return HttpStatus.OK;
   }
 
-  // #=======================#
-  // # ==> REFRESH TOKEN <== #
-  // #=======================#
-  async refreshToken(req: TRequest, payload: RefreshTokenDto) {
+  // #==============================#
+  // # ==> REFRESH ACCESS TOKEN <== #
+  // #==============================#
+  async refreshAccessToken(req: TRequest, payload: RefreshAccessTokenDto) {
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     const { accessToken } = payload;
 
     // Check refreshToken valid
-    const { id, email, passwordTimestamp } = await this.checkToken({
+    const { id, email } = await this.checkToken({
       type: ETokenType.REFRESH_TOKEN,
       token: refreshToken,
+      errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
+    });
+
+    // Check the refreshToken already exist
+    const { id: refreshTokenId } = await this.tokenManagementService.checkExist({
+      filter: {
+        userId: id,
+        type: ETokenType.REFRESH_TOKEN,
+        hashToken: this.tokenManagementService.generateHashToken(refreshToken),
+      },
+    });
+
+    // Check the accessToken already exist
+    const { id: oldAccessTokenId } = await this.tokenManagementService.checkExist({
+      filter: {
+        userId: id,
+        type: ETokenType.ACCESS_TOKEN,
+        hashToken: this.tokenManagementService.generateHashToken(accessToken),
+        refreshTokenId,
+      },
     });
 
     // Verify accessToken has expired
@@ -207,9 +270,38 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate new accessToken
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
-      tokenPayload: { id, email, passwordTimestamp, isAccessToken: true },
+      tokenPayload: { id, email, isAccessToken: true },
       options: { expiresIn: 5 },
     });
+
+    // Start transaction
+    const txManager = this.entityManager.fork();
+    await this.handleTransactionAndRelease(
+      txManager,
+
+      // Process function
+      async () => {
+        // Identify the transaction repository
+        const txRepository = txManager.getRepository(TokenManagementEntity);
+
+        // Delete old accessToken
+        await this.tokenManagementService.delete({
+          filter: { id: oldAccessTokenId },
+          txRepository,
+        });
+
+        // Store new accessToken
+        await this.tokenManagementService.create({
+          entityData: {
+            user: this.entityManager.getReference(UserEntity, id),
+            type: ETokenType.ACCESS_TOKEN,
+            hashToken: this.tokenManagementService.generateHashToken(newAccessToken),
+            refreshTokenId,
+          },
+          txRepository,
+        });
+      },
+    );
 
     return { accessToken: newAccessToken };
   }
@@ -236,20 +328,15 @@ export class AuthService extends BaseService<UserEntity> {
     if (!isCorrectPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
-    // Set new password
-    const newPasswordTimestamp = new Date().valueOf().toString();
-    const hashPassword = await this.generateHashPassword(newPassword);
-
-    await this.userService.update({
-      filter: { id: authId },
-      entityData: { password: hashPassword, passwordTimestamp: newPasswordTimestamp },
-    });
+    // Identify newHashPassword
+    const newHashPassword = await this.generateHashPassword(newPassword);
 
     // Generate accessToken
-    const commonTokenPayload = { id: authId, email, passwordTimestamp: newPasswordTimestamp };
+    const commonTokenPayload = { id: authId, email };
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
+      options: { expiresIn: 5 },
     });
 
     // Generate refreshToken
@@ -258,6 +345,40 @@ export class AuthService extends BaseService<UserEntity> {
       tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
       options: { expiresIn: '30 days' },
     });
+
+    // Start transaction
+    const txManager = this.entityManager.fork();
+    await this.handleTransactionAndRelease(
+      txManager,
+
+      // Process function
+      async () => {
+        // Identify the transaction repository
+        const txUserRepository = txManager.getRepository(UserEntity);
+        const txTokenManagementRepository = txManager.getRepository(TokenManagementEntity);
+
+        // Set new password
+        await this.userService.update({
+          filter: { id: authId },
+          entityData: { password: newHashPassword },
+          txRepository: txUserRepository,
+        });
+
+        // Delete [OLD] refreshToken and accessToken
+        await this.tokenManagementService.delete({
+          filter: { userId: authId },
+          txRepository: txTokenManagementRepository,
+        });
+
+        // Store new token pair
+        await this.tokenManagementService.storeNewTokenPair({
+          txRepository: txTokenManagementRepository,
+          userId: authId,
+          newRefreshToken,
+          newAccessToken,
+        });
+      },
+    );
 
     // Set refreshToken into cookie
     this.setRefreshTokenIntoCookie(res, newRefreshToken);
@@ -269,7 +390,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> GET PROFILE <== #
   // #=====================#
   getProfile(req: TRequest) {
-    return { ...req.authUser, password: undefined, passwordTimestamp: undefined };
+    return { ...req.authUser, password: undefined };
   }
 
   // #========================#

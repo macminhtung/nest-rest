@@ -9,7 +9,7 @@ import {
   SignUpDto,
   SignInDto,
   SignInResponseDto,
-  RefreshTokenDto,
+  RefreshAccessTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
   GeneratePreSignedUrlDto,
@@ -47,18 +47,24 @@ export class AuthController {
   // #=================#
   @ApiOkResponse({ type: String, example: HttpStatus.OK })
   @Delete('signout')
-  signOut(@Res({ passthrough: true }) res: FastifyReply): HttpStatus {
-    return this.authService.signOut(res);
+  signOut(
+    @Req() req: TRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ): Promise<HttpStatus> {
+    return this.authService.signOut(req, res);
   }
 
-  // #=======================#
-  // # ==> REFRESH TOKEN <== #
-  // #=======================#
+  // #==============================#
+  // # ==> REFRESH ACCESS TOKEN <== #
+  // #==============================#
   @Public()
   @ApiOkResponse({ type: SignInResponseDto })
-  @Post('refresh-token')
-  refreshToken(@Req() req: TRequest, @Body() payload: RefreshTokenDto): Promise<SignInResponseDto> {
-    return this.authService.refreshToken(req, payload);
+  @Post('refresh-access-token')
+  refreshAccessToken(
+    @Req() req: TRequest,
+    @Body() payload: RefreshAccessTokenDto,
+  ): Promise<SignInResponseDto> {
+    return this.authService.refreshAccessToken(req, payload);
   }
 
   // #=========================#
@@ -77,9 +83,9 @@ export class AuthController {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  @ApiOkResponse({ type: OmitType(UserEntity, ['password', 'passwordTimestamp']) })
+  @ApiOkResponse({ type: OmitType(UserEntity, ['password']) })
   @Get('/profile')
-  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password' | 'passwordTimestamp'> {
+  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password'> {
     return this.authService.getProfile(req);
   }
 
