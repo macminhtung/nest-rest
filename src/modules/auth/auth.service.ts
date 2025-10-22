@@ -261,6 +261,7 @@ export class AuthService extends BaseService<UserEntity> {
         hashToken: this.userTokenService.generateHashToken(accessToken),
         refreshTokenId,
       },
+      errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
     });
 
     // Verify accessToken has expired
