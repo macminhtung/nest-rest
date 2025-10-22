@@ -11,7 +11,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EEntity } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
-import { TokenManagementEntity } from '@/modules/user/token-management/token-management.entity';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 
 @Entity({ tableName: EEntity.USER })
 export class UserEntity extends BaseEntity {
@@ -55,6 +55,6 @@ export class UserEntity extends BaseEntity {
   @ManyToOne(() => RoleEntity, { fieldName: 'role_id' })
   role?: RoleEntity;
 
-  @OneToMany(() => TokenManagementEntity, (e) => e.user, { cascade: [Cascade.ALL] })
-  tokenManagements?: TokenManagementEntity[];
+  @OneToMany(() => UserTokenEntity, (e) => e.user, { cascade: [Cascade.ALL] })
+  tokenManagements?: UserTokenEntity[];
 }

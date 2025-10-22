@@ -4,9 +4,9 @@ import { EEntity, ETokenType } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { UserEntity } from '@/modules/user/user.entity';
 
-@Entity({ tableName: EEntity.TOKEN_MANAGEMENT })
+@Entity({ tableName: EEntity.USER_TOKEN })
 @Index({ properties: ['userId', 'type', 'hashToken'] })
-export class TokenManagementEntity extends BaseEntity {
+export class UserTokenEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryKey({ type: 'uuid' })
   id: string;
@@ -20,7 +20,7 @@ export class TokenManagementEntity extends BaseEntity {
   type: ETokenType;
 
   @ApiProperty()
-  @Property({ type: 'uuid', nullable: true })
+  @Property({ type: 'uuid', nullable: true, unique: true })
   refreshTokenId?: string;
 
   // ==> [RELATION] COLUMNS <==

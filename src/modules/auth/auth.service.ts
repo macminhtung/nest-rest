@@ -10,8 +10,11 @@ import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
-import { TokenManagementEntity } from '@/modules/user/token-management/token-management.entity';
-import { TokenManagementService } from '@/modules/user/token-management/token-management.service';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
+import {
+  UserTokenService,
+  EProcessUserTokenMode,
+} from '@/modules/user/user-token/user-token.service';
 import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 
 import {
@@ -31,7 +34,7 @@ export class AuthService extends BaseService<UserEntity> {
     public readonly repository: EntityRepository<UserEntity>,
 
     private userService: UserService,
-    private tokenManagementService: TokenManagementService,
+    private userTokenService: UserTokenService,
     private jwtService: JwtService,
     private awsS3Service: AwsS3Service,
   ) {
@@ -51,7 +54,7 @@ export class AuthService extends BaseService<UserEntity> {
     const { id: userId } = decodeToken;
 
     // Generate hashToken
-    const hashToken = this.tokenManagementService.generateHashToken(token);
+    const hashToken = this.userTokenService.generateHashToken(token);
 
     // Check user already exists
     const existedUser = await this.checkExist({
@@ -178,10 +181,11 @@ export class AuthService extends BaseService<UserEntity> {
       // Process function
       async () => {
         // Identify the transaction repository
-        const txRepository = txManager.getRepository(TokenManagementEntity);
+        const txRepository = txManager.getRepository(UserTokenEntity);
 
-        // Store new token pair
-        await this.tokenManagementService.storeNewTokenPair({
+        // Store user tokens
+        await this.userTokenService.processUserToken({
+          mode: EProcessUserTokenMode.CREATE_NEW_TOKEN_PAIR,
           txRepository,
           userId: id,
           newRefreshToken,
@@ -204,16 +208,16 @@ export class AuthService extends BaseService<UserEntity> {
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
 
     // Check the refreshToken already exist
-    const { id: refreshTokenId } = await this.tokenManagementService.checkExist({
+    const { id: refreshTokenId } = await this.userTokenService.checkExist({
       filter: {
         userId: authId,
         type: ETokenType.REFRESH_TOKEN,
-        hashToken: this.tokenManagementService.generateHashToken(refreshToken),
+        hashToken: this.userTokenService.generateHashToken(refreshToken),
       },
     });
 
     // Delete refreshToken and accessToken
-    await this.tokenManagementService.delete({
+    await this.userTokenService.delete({
       filter: [
         { id: refreshTokenId }, // ==> Delete refreshToken
         { refreshTokenId, userId: authId, type: ETokenType.ACCESS_TOKEN }, // ==> Delete accessToken
@@ -241,20 +245,20 @@ export class AuthService extends BaseService<UserEntity> {
     });
 
     // Check the refreshToken already exist
-    const { id: refreshTokenId } = await this.tokenManagementService.checkExist({
+    const { id: refreshTokenId } = await this.userTokenService.checkExist({
       filter: {
         userId: id,
         type: ETokenType.REFRESH_TOKEN,
-        hashToken: this.tokenManagementService.generateHashToken(refreshToken),
+        hashToken: this.userTokenService.generateHashToken(refreshToken),
       },
     });
 
     // Check the accessToken already exist
-    const { id: oldAccessTokenId } = await this.tokenManagementService.checkExist({
+    await this.userTokenService.checkExist({
       filter: {
         userId: id,
         type: ETokenType.ACCESS_TOKEN,
-        hashToken: this.tokenManagementService.generateHashToken(accessToken),
+        hashToken: this.userTokenService.generateHashToken(accessToken),
         refreshTokenId,
       },
     });
@@ -282,23 +286,15 @@ export class AuthService extends BaseService<UserEntity> {
       // Process function
       async () => {
         // Identify the transaction repository
-        const txRepository = txManager.getRepository(TokenManagementEntity);
-
-        // Delete old accessToken
-        await this.tokenManagementService.delete({
-          filter: { id: oldAccessTokenId },
-          txRepository,
-        });
+        const txRepository = txManager.getRepository(UserTokenEntity);
 
         // Store new accessToken
-        await this.tokenManagementService.create({
-          entityData: {
-            user: this.entityManager.getReference(UserEntity, id),
-            type: ETokenType.ACCESS_TOKEN,
-            hashToken: this.tokenManagementService.generateHashToken(newAccessToken),
-            refreshTokenId,
-          },
+        await this.userTokenService.processUserToken({
+          mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
           txRepository,
+          userId: id,
+          refreshTokenId,
+          newAccessToken,
         });
       },
     );
@@ -328,7 +324,14 @@ export class AuthService extends BaseService<UserEntity> {
     if (!isCorrectPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
-    // Identify newHashPassword
+    const isReusedPassword = await this.compareHashPassword({
+      password: newPassword,
+      hashPassword: password,
+    });
+    if (isReusedPassword)
+      throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_REUSED });
+
+    // Generate newHashPassword
     const newHashPassword = await this.generateHashPassword(newPassword);
 
     // Generate accessToken
@@ -355,7 +358,7 @@ export class AuthService extends BaseService<UserEntity> {
       async () => {
         // Identify the transaction repository
         const txUserRepository = txManager.getRepository(UserEntity);
-        const txTokenManagementRepository = txManager.getRepository(TokenManagementEntity);
+        const txTokenManagementRepository = txManager.getRepository(UserTokenEntity);
 
         // Set new password
         await this.userService.update({
@@ -364,14 +367,9 @@ export class AuthService extends BaseService<UserEntity> {
           txRepository: txUserRepository,
         });
 
-        // Delete [OLD] refreshToken and accessToken
-        await this.tokenManagementService.delete({
-          filter: { userId: authId },
-          txRepository: txTokenManagementRepository,
-        });
-
-        // Store new token pair
-        await this.tokenManagementService.storeNewTokenPair({
+        //  Process user tokens
+        await this.userTokenService.processUserToken({
+          mode: EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR,
           txRepository: txTokenManagementRepository,
           userId: authId,
           newRefreshToken,

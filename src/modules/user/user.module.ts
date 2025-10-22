@@ -5,13 +5,13 @@ import { UserService } from '@/modules/user/user.service';
 import { UserController } from '@/modules/user/user.controller';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 import { RoleService } from '@/modules/user/role/role.service';
-import { TokenManagementEntity } from '@/modules/user/token-management/token-management.entity';
-import { TokenManagementService } from '@/modules/user/token-management/token-management.service';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
+import { UserTokenService } from '@/modules/user/user-token/user-token.service';
 
 @Module({
-  imports: [MikroOrmModule.forFeature([UserEntity, RoleEntity, TokenManagementEntity])],
+  imports: [MikroOrmModule.forFeature([UserEntity, RoleEntity, UserTokenEntity])],
   controllers: [UserController],
-  providers: [UserService, RoleService, TokenManagementService],
-  exports: [UserService, RoleService, TokenManagementService],
+  providers: [UserService, RoleService, UserTokenService],
+  exports: [UserService, RoleService, UserTokenService],
 })
 export class UserModule {}
