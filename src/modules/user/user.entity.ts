@@ -56,5 +56,5 @@ export class UserEntity extends BaseEntity {
   role?: RoleEntity;
 
   @OneToMany(() => UserTokenEntity, (e) => e.user, { cascade: [Cascade.ALL] })
-  tokenManagements?: UserTokenEntity[];
+  userTokens?: UserTokenEntity[];
 }
