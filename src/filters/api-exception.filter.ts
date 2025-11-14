@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { LOGGER_CONTEXT } from '@/common/constants';
 
 export const formatLoggerMessage = (stack: string, message: string) => {
   const errorLines: string[] = stack?.split('\n')?.slice(1, 4);
@@ -21,8 +22,8 @@ export class ApiExceptionsFilter implements ExceptionFilter {
     const loggerMessage = formatLoggerMessage(stack, message);
 
     // Display error message
-    if (status >= 500) this.logger.error(loggerMessage);
-    else this.logger.warn(loggerMessage);
+    if (status >= 500) this.logger.error(loggerMessage, LOGGER_CONTEXT.HTTP);
+    else this.logger.warn(loggerMessage, LOGGER_CONTEXT.HTTP);
 
     const response = host.switchToHttp().getResponse();
     return response.status(status).send({

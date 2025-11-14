@@ -6,6 +6,7 @@ import { ApiLoggingInterceptor } from '@/interceptors';
 import { AuthGuard } from '@/guards';
 import { ApiExceptionsFilter } from '@/filters';
 import { ApiValidationPipe } from '@/pipes';
+import { GatewayModule } from '@/modules/gateway/gateway.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { ProductModule } from '@/modules/product/product.module';
@@ -34,6 +35,11 @@ import { MikroORMModule } from '@/modules/mikro-orm/mikro-orm.module';
     // # ==> MIKRO_ORM MODULE <== #
     // #==========================#
     MikroORMModule,
+
+    // #========================#
+    // # ==> GATEWAY MODULE <== #
+    // #========================#
+    GatewayModule,
 
     SharedModule,
     UserModule,

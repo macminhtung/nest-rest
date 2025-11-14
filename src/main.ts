@@ -27,9 +27,6 @@ async function bootstrap() {
   const { PROTOCOL, DOMAIN, PORT } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
-  logger.debug(
-    `==> APP IS RUNNING | PORT: ${PORT} <== [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`,
-    'APPLICATION',
-  );
+  logger.debug(`==> INITIALIZED [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`, 'APPLICATION');
 }
 bootstrap();

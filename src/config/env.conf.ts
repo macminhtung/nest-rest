@@ -2,6 +2,7 @@ export const loadENVsFunc = () => ({
   protocol: process.env.PROTOCOL!,
   domain: process.env.DOMAIN!,
   port: process.env.PORT!,
+  socketPort: process.env.SOCKET_PORT!,
   jwtSecretKey: process.env.JWT_SECRET_KEY!,
   appUri: process.env.APP_URI!,
   database: {
