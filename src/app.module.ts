@@ -9,6 +9,7 @@ import { ApiValidationPipe } from '@/pipes';
 import { GatewayModule } from '@/modules/gateway/gateway.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
+import { GroupModule } from '@/modules/group/group.module';
 import { ProductModule } from '@/modules/product/product.module';
 import { SharedModule } from '@/modules/shared/shared.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
@@ -45,6 +46,7 @@ import { MikroORMModule } from '@/modules/mikro-orm/mikro-orm.module';
     UserModule,
     AuthModule,
     ProductModule,
+    GroupModule,
   ],
   providers: [
     // #===================================#

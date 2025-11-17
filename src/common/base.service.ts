@@ -33,6 +33,27 @@ export class BaseService<E extends object> {
   public entityName: string;
   public entityManager: EntityManager;
 
+  // #=====================#
+  // # ==> CREATE MANY <== #
+  // #=====================#
+  async createMany(payload: {
+    listEntityData: RequiredEntityData<E>[];
+    txRepository?: EntityRepository<E>;
+  }): Promise<E[]> {
+    const { listEntityData, txRepository } = payload;
+
+    // Identify the repository
+    const repository = txRepository || this.repository;
+
+    // Create the entities
+    const entities = listEntityData.map((item) => repository.create({ id: uuidv7(), ...item }));
+
+    // Insert the entities
+    await repository.insertMany(entities);
+
+    return entities;
+  }
+
   // #================#
   // # ==> CREATE <== #
   // #================#

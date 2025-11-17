@@ -1,13 +1,13 @@
 import { Controller, Get, Put, Param, Query, Body } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { EEntity, ERoleName } from '@/common/enums';
+import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
 import { ApiOkResponsePaginated } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 
-@Controller(EEntity.USER)
+@Controller(ETableName.USER)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

@@ -6,14 +6,16 @@ import {
   Index,
   OneToMany,
   Cascade,
+  Collection,
 } from '@mikro-orm/core';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
+import { GroupMemberEntity } from '@/modules/group/group-member/group-member.entity';
 
-@Entity({ tableName: EEntity.USER })
+@Entity({ tableName: ETableName.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryKey({ type: 'uuid' })
@@ -50,6 +52,11 @@ export class UserEntity extends BaseEntity {
   @Index()
   roleId?: number;
 
+  @ApiProperty()
+  @Property({ type: 'uuid', persist: false })
+  @Index()
+  companyId?: string;
+
   // ==> [RELATION] TABLES <==
   @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity, { fieldName: 'role_id' })
@@ -57,4 +64,8 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => UserTokenEntity, (e) => e.user, { cascade: [Cascade.ALL] })
   userTokens?: UserTokenEntity[];
+
+  @ApiPropertyOptional()
+  @OneToMany(() => GroupMemberEntity, (e) => e.member, { cascade: [Cascade.ALL] })
+  groupMembers = new Collection<GroupMemberEntity>(this);
 }

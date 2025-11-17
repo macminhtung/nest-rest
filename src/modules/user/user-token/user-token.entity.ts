@@ -1,10 +1,10 @@
 import { Entity, PrimaryKey, Property, ManyToOne, Index, Enum } from '@mikro-orm/core';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EEntity, ETokenType } from '@/common/enums';
+import { ETableName, ETokenType } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { UserEntity } from '@/modules/user/user.entity';
 
-@Entity({ tableName: EEntity.USER_TOKEN })
+@Entity({ tableName: ETableName.USER_TOKEN })
 @Index({ properties: ['userId', 'type', 'hashToken'] })
 export class UserTokenEntity extends BaseEntity {
   @ApiProperty()

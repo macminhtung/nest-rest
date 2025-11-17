@@ -1,9 +1,9 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { ApiProperty } from '@nestjs/swagger';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 
-@Entity({ tableName: EEntity.PRODUCT })
+@Entity({ tableName: ETableName.PRODUCT })
 export class ProductEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryKey({ type: 'uuid' })

@@ -1,6 +1,6 @@
 import { Controller, Post, Put, Delete, Get, Param, Query, Body } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { EEntity, ERoleName } from '@/common/enums';
+import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
 import { Public } from '@/decorators';
 import { ProductService } from '@/modules/product/product.service';
@@ -12,7 +12,7 @@ import {
   PaginatedResponseDto,
 } from '@/common/dtos';
 
-@Controller(EEntity.PRODUCT)
+@Controller(ETableName.PRODUCT)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
