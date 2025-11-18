@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/postgresql';
 import { BaseService } from '@/common/base.service';
-import { GetPaginatedRecordsDto } from '@/common/dtos';
+import { GetPaginatedRecordsDto, PaginatedResponseDto } from '@/common/dtos';
 import { ProductEntity } from '@/modules/product/product.entity';
 import { SearchProductService } from '@/modules/elastic/search-services';
 import { CreateProductDto } from '@/modules/product/dtos';
@@ -21,7 +21,7 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   // # ==> CREATE PRODUCT <== #
   // #========================#
-  async createProduct(payload: CreateProductDto) {
+  async createProduct(payload: CreateProductDto): Promise<ProductEntity> {
     // Check conflict the product name
     await this.checkConflict({ filter: { name: payload.name } });
 
@@ -51,7 +51,7 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   // # ==> UPDATE PRODUCT <== #
   // #========================#
-  async updateProduct(id: string, payload: CreateProductDto) {
+  async updateProduct(id: string, payload: CreateProductDto): Promise<ProductEntity> {
     // Check the product already exists
     const existedProduct = await this.checkExist({ filter: { id } });
 
@@ -82,7 +82,7 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   // # ==> DELETE PRODUCT <== #
   // #========================#
-  async deleteProduct(id: string) {
+  async deleteProduct(id: string): Promise<string> {
     // Check the product already exists
     await this.checkExist({ filter: { id } });
 
@@ -110,7 +110,9 @@ export class ProductService extends BaseService<ProductEntity> {
   // #================================#
   // # ==> GET PAGINATED PRODUCTS <== #
   // #================================#
-  async getPaginatedProducts(queryParams: GetPaginatedRecordsDto) {
+  async getPaginatedProducts(
+    queryParams: GetPaginatedRecordsDto,
+  ): Promise<PaginatedResponseDto<ProductEntity>> {
     const { keySearch, ...restParams } = queryParams;
     let productIds: string[] = [];
 

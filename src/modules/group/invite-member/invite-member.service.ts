@@ -33,11 +33,16 @@ export class InviteMemberService extends BaseService<InviteMemberEntity> {
     const { id: authId } = req.authUser;
     const { groupId, memberId } = payload;
 
-    // Prevent creating if the group's name already exists
+    // Check the groupId belong to authId already exists
     await this.checkExist({ filter: { groupId, group: { ownerId: authId } } });
 
     // Prevent creating if the group's name already exists
-    await this.checkConflict({ filter: { groupId, memberId } });
+    await this.checkConflict({
+      filter: [
+        { groupId, memberId, status: EInviteMemberStatus.REQUESTING },
+        { groupId, memberId, status: EInviteMemberStatus.DECLINE, ignoreCase: true },
+      ],
+    });
 
     // Create new invite-member
     const newInviteMember = await this.create({ entityData: { groupId, memberId } });
@@ -56,7 +61,7 @@ export class InviteMemberService extends BaseService<InviteMemberEntity> {
     const { id: authId } = req.authUser;
     const { status, isPreventReinvite } = payload;
 
-    // Prevent creating if the group's name already exists
+    // Check the invite-member already exists
     const existedInviteMember = await this.checkExist({
       filter: { id: inviteMemberId, memberId: authId, status: EInviteMemberStatus.REQUESTING },
     });
@@ -68,6 +73,27 @@ export class InviteMemberService extends BaseService<InviteMemberEntity> {
     });
 
     return { ...existedInviteMember, ...payload };
+  }
+
+  // #==============================#
+  // # ==> DELETE INVITE MEMBER <== #
+  // #==============================#
+  async deleteInviteMember(req: TRequest, inviteMemberId: string): Promise<string> {
+    const { id: authId } = req.authUser;
+
+    // Check the invite-member already exists
+    await this.checkExist({
+      filter: {
+        id: inviteMemberId,
+        status: EInviteMemberStatus.REQUESTING,
+        group: { ownerId: authId },
+      },
+    });
+
+    // Soft delete invite-member
+    await this.update({ filter: { id: inviteMemberId }, entityData: { deletedAt: new Date() } });
+
+    return inviteMemberId;
   }
 
   // #======================================#

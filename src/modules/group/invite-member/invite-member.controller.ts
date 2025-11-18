@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Query, Body, Req, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Query, Body, Req, Param } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import type { TRequest } from '@/common/types';
@@ -35,6 +35,15 @@ export class InviteMemberController {
     @Body() payload: ManageInviteMemberStatusDto,
   ) {
     return this.service.manageInviteMemberStatus(req, inviteMemberId, payload);
+  }
+
+  // #==============================#
+  // # ==> DELETE INVITE MEMBER <== #
+  // #==============================#
+  @ApiOkResponse({ type: InviteMemberEntity })
+  @Delete('/:id')
+  deleteInviteMember(@Req() req: TRequest, @Param('id') inviteMemberId: string) {
+    return this.service.deleteInviteMember(req, inviteMemberId);
   }
 
   // #======================================#

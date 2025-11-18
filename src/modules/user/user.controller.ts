@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Query, Body } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Query, Body } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
@@ -29,6 +29,26 @@ export class UserController {
   @Get(':id')
   getUser(@Param('id') id: string) {
     return this.userService.getUser(id);
+  }
+
+  // #=====================#
+  // # ==> DELETE USER <== #
+  // #=====================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponse({ type: UserEntity })
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser(id);
+  }
+
+  // #======================#
+  // # ==> RESTORE USER <== #
+  // #======================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponse({ type: UserEntity })
+  @Post(':id')
+  restoreUser(@Param('id') id: string) {
+    return this.userService.restoreUser(id);
   }
 
   // #=============================#

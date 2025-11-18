@@ -233,7 +233,10 @@ export class AuthService extends BaseService<UserEntity> {
   // #==============================#
   // # ==> REFRESH ACCESS TOKEN <== #
   // #==============================#
-  async refreshAccessToken(req: TRequest, payload: RefreshAccessTokenDto) {
+  async refreshAccessToken(
+    req: TRequest,
+    payload: RefreshAccessTokenDto,
+  ): Promise<SignInResponseDto> {
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     const { accessToken } = payload;
 
@@ -306,7 +309,11 @@ export class AuthService extends BaseService<UserEntity> {
   // #=========================#
   // # ==> UPDATE PASSWORD <== #
   // #=========================#
-  async updatePassword(req: TRequest, res: FastifyReply, payload: UpdatePasswordDto) {
+  async updatePassword(
+    req: TRequest,
+    res: FastifyReply,
+    payload: UpdatePasswordDto,
+  ): Promise<SignInResponseDto> {
     const { id: authId, email, password } = req.authUser;
     const { oldPassword, newPassword } = payload;
 
@@ -388,14 +395,14 @@ export class AuthService extends BaseService<UserEntity> {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  getProfile(req: TRequest) {
-    return { ...req.authUser, password: undefined };
+  getProfile(req: TRequest): UserEntity {
+    return { ...req.authUser, password: '' };
   }
 
   // #========================#
   // # ==> UPDATE PROFILE <== #
   // #========================#
-  async updateProfile(req: TRequest, payload: UpdateProfileDto) {
+  async updateProfile(req: TRequest, payload: UpdateProfileDto): Promise<UpdateProfileDto> {
     await this.update({ filter: { id: req.authUser.id }, entityData: payload });
     return payload;
   }
@@ -403,7 +410,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # =============================== #
   // # ==> GENERATE PRE-SIGNED URL <== #
   // # =============================== #
-  async generatePreSignedUrl(req: TRequest, payload: GeneratePreSignedUrlDto) {
+  async generatePreSignedUrl(req: TRequest, payload: GeneratePreSignedUrlDto): Promise<string> {
     const { id: authId } = req.authUser;
     const { filename, contentType } = payload;
 
