@@ -56,7 +56,7 @@ export class ProductService extends BaseService<ProductEntity> {
     const existedProduct = await this.checkExist({ filter: { id } });
 
     // Check conflict the product name
-    await this.checkConflict({ filter: { name: payload.name, id: { $not: id } } });
+    await this.checkConflict({ filter: { name: payload.name, id: { $ne: id } } });
 
     // Start transaction
     const txManager = this.entityManager.fork();

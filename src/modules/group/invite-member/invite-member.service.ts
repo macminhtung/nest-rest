@@ -90,8 +90,8 @@ export class InviteMemberService extends BaseService<InviteMemberEntity> {
       },
     });
 
-    // Soft delete invite-member
-    await this.update({ filter: { id: inviteMemberId }, entityData: { deletedAt: new Date() } });
+    // Delete invite-member
+    await this.delete({ filter: { id: inviteMemberId } });
 
     return inviteMemberId;
   }

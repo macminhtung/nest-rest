@@ -5,7 +5,7 @@ import {
   FindOneOptions,
   QueryOrder,
 } from '@mikro-orm/postgresql';
-import { EntityData, Loaded, QBFilterQuery, RequiredEntityData } from '@mikro-orm/core';
+import { EntityData, Loaded, RequiredEntityData } from '@mikro-orm/core';
 import { v7 as uuidv7 } from 'uuid';
 import { ERROR_MESSAGES } from '@/common/constants';
 import { EOrder } from '@/common/enums';
@@ -32,78 +32,6 @@ export class BaseService<E extends object> {
 
   public entityName: string;
   public entityManager: EntityManager;
-
-  // #=====================#
-  // # ==> CREATE MANY <== #
-  // #=====================#
-  async createMany(payload: {
-    listEntityData: RequiredEntityData<E>[];
-    txRepository?: EntityRepository<E>;
-  }): Promise<E[]> {
-    const { listEntityData, txRepository } = payload;
-
-    // Identify the repository
-    const repository = txRepository || this.repository;
-
-    // Create the entities
-    const entities = listEntityData.map((item) => repository.create({ id: uuidv7(), ...item }));
-
-    // Insert the entities
-    await repository.insertMany(entities);
-
-    return entities;
-  }
-
-  // #================#
-  // # ==> CREATE <== #
-  // #================#
-  async create(payload: {
-    entityData: RequiredEntityData<E>;
-    txRepository?: EntityRepository<E>;
-  }): Promise<E> {
-    const { entityData, txRepository } = payload;
-
-    // Identify the repository
-    const repository = txRepository || this.repository;
-
-    // Create the entity
-    const entity = repository.create({ id: uuidv7(), ...entityData });
-
-    // Insert the entity
-    await repository.insert(entity);
-
-    return entity;
-  }
-
-  // #================#
-  // # ==> UPDATE <== #
-  // #================#
-  async update(payload: {
-    filter: QBFilterQuery<E>;
-    entityData: EntityData<E>;
-    txRepository?: EntityRepository<E>;
-  }) {
-    const { filter, entityData, txRepository } = payload;
-
-    // Identify the repository
-    const repository = txRepository || this.repository;
-
-    // Update the payload
-    await repository.createQueryBuilder().update(entityData).where(filter).execute();
-  }
-
-  // #================#
-  // # ==> DELETE <== #
-  // #================#
-  async delete(payload: { filter: QBFilterQuery<E>; txRepository?: EntityRepository<E> }) {
-    const { filter, txRepository } = payload;
-
-    // Identify the repository
-    const repository = txRepository || this.repository;
-
-    // CASE: Hard delete
-    await repository.createQueryBuilder().delete(filter).execute();
-  }
 
   // #=====================#
   // # ==> FIND_RECORD <== #
@@ -160,6 +88,86 @@ export class BaseService<E extends object> {
       throw new ConflictException({
         message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
       });
+  }
+
+  // #=====================#
+  // # ==> CREATE MANY <== #
+  // #=====================#
+  async createMany(payload: {
+    listEntityData: RequiredEntityData<E>[];
+    txRepository?: EntityRepository<E>;
+  }): Promise<E[]> {
+    const { listEntityData, txRepository } = payload;
+
+    // Identify the repository
+    const repository = txRepository || this.repository;
+
+    // Create the entities
+    const entities = listEntityData.map((item) => repository.create({ id: uuidv7(), ...item }));
+
+    // Insert the entities
+    await repository.insertMany(entities);
+
+    return entities;
+  }
+
+  // #================#
+  // # ==> CREATE <== #
+  // #================#
+  async create(payload: {
+    entityData: RequiredEntityData<E>;
+    txRepository?: EntityRepository<E>;
+  }): Promise<E> {
+    const { entityData, txRepository } = payload;
+
+    // Identify the repository
+    const repository = txRepository || this.repository;
+
+    // Create the entity
+    const entity = repository.create({ id: uuidv7(), ...entityData });
+
+    // Insert the entity
+    await repository.insert(entity);
+
+    return entity;
+  }
+
+  // #================#
+  // # ==> UPDATE <== #
+  // #================#
+  async update(payload: {
+    filter: FilterQuery<E>;
+    entityData: EntityData<E>;
+    txRepository?: EntityRepository<E>;
+  }) {
+    const { filter, entityData, txRepository } = payload;
+
+    // Identify the repository
+    const repository = txRepository || this.repository;
+
+    // Update the payload
+    await repository.createQueryBuilder().update(entityData).where(filter).execute();
+  }
+
+  // #=====================#
+  // # ==> SOFT DELETE <== #
+  // #=====================#
+  async softDelete(payload: { filter: FilterQuery<E>; txRepository?: EntityRepository<E> }) {
+    const entityData: object = { deletedAt: new Date() };
+    await this.update({ ...payload, entityData });
+  }
+
+  // #================#
+  // # ==> DELETE <== #
+  // #================#
+  async delete(payload: { filter: FilterQuery<E>; txRepository?: EntityRepository<E> }) {
+    const { filter, txRepository } = payload;
+
+    // Identify the repository
+    const repository = txRepository || this.repository;
+
+    // CASE: Hard delete
+    await repository.createQueryBuilder().delete(filter).execute();
   }
 
   // #=====================#
@@ -227,7 +235,7 @@ export class BaseService<E extends object> {
     if (createdTo) baseQB.andWhere({ createdAt: { $lte: createdTo } });
 
     // Query deleted records
-    if (isDeleted) baseQB.andWhere({ deletedAt: { $ne: null } });
+    if (isDeleted) baseQB.andWhere({ deletedAt: { $not: null } });
     // Query records are not deleted
     else baseQB.where({ deletedAt: null });
 

@@ -41,7 +41,7 @@ export class UserService extends BaseService<UserEntity> {
     await this.checkExist({ filter: { id, roleId: { $ne: DEFAULT_ROLES.ADMIN.id } } });
 
     // Soft delete the user
-    await this.update({ filter: { id }, entityData: { deletedAt: new Date() } });
+    await this.softDelete({ filter: { id } });
 
     return id;
   }
