@@ -10,7 +10,7 @@ import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { JwtService, ETokenType, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
+import { JwtService, ETokenType, TVerifyToken } from '@/modules/shared/services';
 
 import {
   SignUpDto,
@@ -19,7 +19,6 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
-  GeneratePreSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Injectable()
@@ -30,7 +29,6 @@ export class AuthService extends BaseService<UserEntity> {
 
     private userService: UserService,
     private jwtService: JwtService,
-    private awsS3Service: AwsS3Service,
   ) {
     super(repository);
   }
@@ -43,27 +41,12 @@ export class AuthService extends BaseService<UserEntity> {
     const decodeToken = this.jwtService.verifyToken(payload);
 
     // Check user already exists
-    const { id, passwordTimestamp } = decodeToken;
+    const { id } = decodeToken;
     const existedUser = await this.userService.checkExist({
-      select: [
-        'id',
-        'avatar',
-        'email',
-        'password',
-        'firstName',
-        'lastName',
-        'roleId',
-        'isEmailVerified',
-        'passwordTimestamp',
-        'role',
-      ],
-      where: { id, isEmailVerified: true },
+      select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId', 'role'],
+      where: { id },
       relations: { role: true },
     });
-
-    // Check passwordTimestamp is correct
-    if (passwordTimestamp !== existedUser.passwordTimestamp)
-      throw new BadRequestException({ message: ERROR_MESSAGES.TIMESTAMP_INCORRECT });
 
     return existedUser;
   }
@@ -109,9 +92,6 @@ export class AuthService extends BaseService<UserEntity> {
     // Check if email has conflict
     await this.userService.checkConflict({ where: { email } });
 
-    // Create the passwordTimestamp
-    const passwordTimestamp = new Date().valueOf().toString();
-
     // Hash the password
     const hashPassword = await this.generateHashPassword(password);
 
@@ -122,8 +102,6 @@ export class AuthService extends BaseService<UserEntity> {
       password: hashPassword,
       firstName,
       lastName,
-      isEmailVerified: true,
-      passwordTimestamp,
       roleId: DEFAULT_ROLES.USER.id,
     });
 
@@ -138,10 +116,10 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Check email already exists
     const existUser = await this.userService.checkExist({
-      select: ['id', 'password', 'passwordTimestamp'],
-      where: { email, isEmailVerified: true },
+      select: ['id', 'password'],
+      where: { email },
     });
-    const { id, passwordTimestamp } = existUser;
+    const { id } = existUser;
 
     // Check password is valid
     const isValidPassword = await this.compareHashPassword({
@@ -152,7 +130,7 @@ export class AuthService extends BaseService<UserEntity> {
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
     // Generate accessToken
-    const commonTokenPayload = { id, email, passwordTimestamp };
+    const commonTokenPayload = { id, email };
     const accessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
@@ -190,7 +168,7 @@ export class AuthService extends BaseService<UserEntity> {
     const { accessToken } = payload;
 
     // Check refreshToken valid
-    const { id, email, passwordTimestamp } = await this.checkToken({
+    const { id, email } = await this.checkToken({
       type: ETokenType.REFRESH_TOKEN,
       token: refreshToken,
     });
@@ -206,7 +184,7 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate new accessToken
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
-      tokenPayload: { id, email, passwordTimestamp, isAccessToken: true },
+      tokenPayload: { id, email, isAccessToken: true },
       options: { expiresIn: 5 },
     });
 
@@ -236,15 +214,13 @@ export class AuthService extends BaseService<UserEntity> {
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
     // Set new password
-    const newPasswordTimestamp = new Date().valueOf().toString();
     const hashPassword = await this.generateHashPassword(newPassword);
     await this.userService.repository.update(authId, {
       password: hashPassword,
-      passwordTimestamp: newPasswordTimestamp,
     });
 
     // Generate accessToken
-    const commonTokenPayload = { id: authId, email, passwordTimestamp: newPasswordTimestamp };
+    const commonTokenPayload = { id: authId, email };
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
@@ -267,7 +243,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> GET PROFILE <== #
   // #=====================#
   getProfile(req: TRequest) {
-    return { ...req.authUser, password: undefined, passwordTimestamp: undefined };
+    return { ...req.authUser, password: undefined };
   }
 
   // #========================#
@@ -276,18 +252,5 @@ export class AuthService extends BaseService<UserEntity> {
   async updateProfile(req: TRequest, payload: UpdateProfileDto) {
     await this.repository.update(req.authUser.id, payload);
     return payload;
-  }
-
-  // # =============================== #
-  // # ==> GENERATE PRE-SIGNED URL <== #
-  // # =============================== #
-  async generatePreSignedUrl(req: TRequest, payload: GeneratePreSignedUrlDto) {
-    const { id: authId } = req.authUser;
-    const { filename, contentType } = payload;
-
-    return await this.awsS3Service.generatePreSignedUrl({
-      key: `${authId}/${filename}`,
-      contentType,
-    });
   }
 }

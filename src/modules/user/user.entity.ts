@@ -1,18 +1,14 @@
 import { Column, PrimaryColumn, Entity, ManyToOne } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 
-@Entity({ name: EEntity.USER })
+@Entity({ name: ETableName.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')
   id: string;
-
-  @ApiProperty()
-  @Column({ default: '' })
-  avatar: string;
 
   @ApiProperty()
   @Column({ unique: true })
@@ -22,19 +18,16 @@ export class UserEntity extends BaseEntity {
   password: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ length: 40 })
   firstName: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ length: 40 })
   lastName: string;
 
-  @Column({ select: false, default: new Date().valueOf().toString() })
-  passwordTimestamp: string; // ==> Check JWT after password change
-
   @ApiProperty()
-  @Column({ default: false })
-  isEmailVerified: boolean;
+  @Column({ length: 200 })
+  location: string;
 
   // Relation columns
   @ApiProperty({ type: 'integer' })

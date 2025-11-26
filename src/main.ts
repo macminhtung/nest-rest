@@ -8,7 +8,6 @@ import { AppModule } from '@/app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.disable('x-powered-by'); // Remove x-powered-by header
   app.enableCors({ origin: process.env.APP_URI, credentials: true });
   app.use(cookieParser());
 
@@ -21,12 +20,9 @@ async function bootstrap() {
   // #===========================#
   // # ==> START APPLICATION <== #
   // #===========================#
-  const { PROTOCOL, DOMAIN, PORT } = process.env;
+  const { PROTOCOL, DOMAIN, PORT = 3001 } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
-  logger.debug(
-    `==> APP IS RUNNING | PORT: ${PORT} <== [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`,
-    'APPLICATION',
-  );
+  logger.debug(`==> INITIALIZED [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`, 'APPLICATION');
 }
 bootstrap();

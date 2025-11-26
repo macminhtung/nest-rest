@@ -12,7 +12,6 @@ import {
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
-  GeneratePreSignedUrlDto,
 } from '@/modules/auth/dtos';
 
 @Controller('auth')
@@ -77,9 +76,9 @@ export class AuthController {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  @ApiOkResponse({ type: OmitType(UserEntity, ['password', 'passwordTimestamp']) })
+  @ApiOkResponse({ type: OmitType(UserEntity, ['password']) })
   @Get('/profile')
-  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password' | 'passwordTimestamp'> {
+  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password'> {
     return this.authService.getProfile(req);
   }
 
@@ -93,17 +92,5 @@ export class AuthController {
     @Body() payload: UpdateProfileDto,
   ): Promise<UpdateProfileDto> {
     return this.authService.updateProfile(req, payload);
-  }
-
-  // # =============================== #
-  // # ==> GENERATE PRE-SIGNED URL <== #
-  // # =============================== #
-  @ApiOkResponse({ type: String })
-  @Post('/presigned-url')
-  generatePreSignedUrl(
-    @Req() req: TRequest,
-    @Body() payload: GeneratePreSignedUrlDto,
-  ): Promise<string> {
-    return this.authService.generatePreSignedUrl(req, payload);
   }
 }

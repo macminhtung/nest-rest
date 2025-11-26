@@ -1,8 +1,7 @@
 import { Global, Module, Logger } from '@nestjs/common';
-import { AwsS3Service } from '@/modules/shared/services/awsS3.service';
 import { JwtService } from '@/modules/shared/services/jwt.service';
 
-const SHARED_SERVICES = [JwtService, AwsS3Service, Logger];
+const SHARED_SERVICES = [JwtService, Logger];
 
 @Global()
 @Module({

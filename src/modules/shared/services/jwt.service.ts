@@ -16,7 +16,6 @@ type TTokenPayload<T extends ETokenType> = (T extends ETokenType.ACCESS_TOKEN
   : { isRefreshToken: true }) & {
   id: string;
   email: string;
-  passwordTimestamp: string;
 };
 
 type TGenerateToken<T extends ETokenType> = {
