@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Get, Delete, Body, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Put, Get, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { Public } from '@/decorators';
@@ -45,7 +45,7 @@ export class AuthController {
   // # ==> SIGNOUT <== #
   // #=================#
   @ApiOkResponse({ type: String, example: HttpStatus.OK })
-  @Delete('signout')
+  @Post('signout')
   signOut(@Req() req: TRequest, @Res({ passthrough: true }) res: Response): Promise<HttpStatus> {
     return this.authService.signOut(req, res);
   }

@@ -20,9 +20,11 @@ async function bootstrap() {
   // #===========================#
   // # ==> START APPLICATION <== #
   // #===========================#
-  const { PROTOCOL, DOMAIN, PORT = 3001 } = process.env;
+  const { NODE_ENV, PORT = 3001 } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
-  logger.debug(`==> INITIALIZED [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`, 'APPLICATION');
+  if (NODE_ENV === 'development') {
+    logger.debug(`==> INITIALIZED [http://localhost:${PORT}/documentation]`, 'APPLICATION');
+  }
 }
 bootstrap();

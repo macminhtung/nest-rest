@@ -1,5 +1,5 @@
 import { GetPaginatedRecordsDto } from '@/common/dtos';
-import { IsArray, IsNumber, IsOptional } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsEmail } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GetUsersPaginatedDto extends GetPaginatedRecordsDto {
@@ -8,4 +8,9 @@ export class GetUsersPaginatedDto extends GetPaginatedRecordsDto {
   @IsArray({ each: true })
   @IsNumber()
   roleIds: number[];
+
+  @ApiPropertyOptional({ type: 'string', description: `User's email` })
+  @IsOptional()
+  @IsEmail()
+  email: string;
 }

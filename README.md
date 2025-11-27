@@ -1,7 +1,7 @@
 ## Technologies used
 
 - NestJs + Typescript + Eslint + Prettier
-- TypeORM + PostgreSQL
+- TypeORM + Mariadb
 - RestAPI + Swagger
 - Elastic Search
 

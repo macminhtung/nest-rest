@@ -7,7 +7,7 @@ export const ENV_VALIDATION = Joi.object({
 
   TYPEORM_TYPE: Joi.string().required(),
   TYPEORM_HOST: Joi.string().required(),
-  TYPEORM_PORT: Joi.number().default(5432),
+  TYPEORM_PORT: Joi.number().default(3306),
   TYPEORM_USERNAME: Joi.string().required(),
   TYPEORM_PASSWORD: Joi.string().required(),
   TYPEORM_DATABASE: Joi.string().required(),

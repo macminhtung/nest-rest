@@ -7,7 +7,7 @@ import { ApiLoggingInterceptor } from '@/interceptors';
 import { AuthGuard } from '@/guards';
 import { ApiExceptionsFilter } from '@/filters';
 import { ApiValidationPipe } from '@/pipes';
-import { config } from '@/typeorm.config';
+import { typeormConfig } from '@/config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/modules/shared/shared.module';
@@ -27,7 +27,7 @@ import { SharedModule } from '@/modules/shared/shared.module';
     // #=========================#
     // # ==> TYPE_ORM MODULE <== #
     // #=========================#
-    TypeOrmModule.forRoot(config),
+    TypeOrmModule.forRoot(typeormConfig),
 
     SharedModule,
     UserModule,
