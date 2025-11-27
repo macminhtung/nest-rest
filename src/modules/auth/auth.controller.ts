@@ -46,8 +46,8 @@ export class AuthController {
   // #=================#
   @ApiOkResponse({ type: String, example: HttpStatus.OK })
   @Delete('signout')
-  signOut(@Res({ passthrough: true }) res: Response): HttpStatus {
-    return this.authService.signOut(res);
+  signOut(@Req() req: TRequest, @Res({ passthrough: true }) res: Response): Promise<HttpStatus> {
+    return this.authService.signOut(req, res);
   }
 
   // #=======================#

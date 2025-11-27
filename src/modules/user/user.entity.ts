@@ -1,8 +1,9 @@
-import { Column, PrimaryColumn, Entity, ManyToOne } from 'typeorm';
+import { Column, PrimaryColumn, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 
 @Entity({ name: ETableName.USER })
 export class UserEntity extends BaseEntity {
@@ -25,8 +26,8 @@ export class UserEntity extends BaseEntity {
   @Column({ length: 40 })
   lastName: string;
 
-  @ApiProperty()
-  @Column({ length: 200 })
+  @ApiPropertyOptional()
+  @Column({ length: 200, nullable: true })
   location: string;
 
   // Relation columns
@@ -38,4 +39,7 @@ export class UserEntity extends BaseEntity {
   @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
   role: RoleEntity;
+
+  @OneToMany(() => UserTokenEntity, (e) => e.user, { cascade: ['soft-remove', 'remove'] })
+  userTokens?: UserTokenEntity[];
 }
