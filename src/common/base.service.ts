@@ -35,8 +35,36 @@ export class BaseService<E extends ObjectLiteral> {
   public entityName: string;
 
   // #=====================#
-  // # ==> TRANSACTION <== #
+  // # ==> CHECK_EXIST <== #
   // #=====================#
+  async checkExist(findOpts: FindOneOptions<E>, errorMessage?: string): Promise<E> {
+    const existRecord = await this.repository.findOne(findOpts);
+
+    // Throw error if the record doesn't exists
+    if (!existRecord)
+      throw new NotFoundException({
+        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.NOT_FOUND}!`,
+      });
+
+    return existRecord;
+  }
+
+  // #========================#
+  // # ==> CHECK_CONFLICT <== #
+  // #========================#
+  async checkConflict(findOpts: FindOneOptions<E>, errorMessage?: string) {
+    const existRecord = await this.repository.findOne(findOpts);
+
+    // Throw error if the record exists
+    if (existRecord)
+      throw new ConflictException({
+        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
+      });
+  }
+
+  // #========================================#
+  // # ==> HANDLE TRANSACTION AND RELEASE <== #
+  // #========================================#
   async handleTransactionAndRelease<T>(
     queryRunner: QueryRunner,
     processFunc: () => Promise<T>,
@@ -65,34 +93,6 @@ export class BaseService<E extends ObjectLiteral> {
     } finally {
       await queryRunner.release();
     }
-  }
-
-  // #=====================#
-  // # ==> CHECK_EXIST <== #
-  // #=====================#
-  async checkExist(findOpts: FindOneOptions<E>, errorMessage?: string): Promise<E> {
-    const existRecord = await this.repository.findOne(findOpts);
-
-    // Throw error if the record doesn't exists
-    if (!existRecord)
-      throw new NotFoundException({
-        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.NOT_FOUND}!`,
-      });
-
-    return existRecord;
-  }
-
-  // #========================#
-  // # ==> CHECK_CONFLICT <== #
-  // #========================#
-  async checkConflict(findOpts: FindOneOptions<E>, errorMessage?: string) {
-    const existRecord = await this.repository.findOne(findOpts);
-
-    // Throw error if the record exists
-    if (existRecord)
-      throw new ConflictException({
-        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
-      });
   }
 
   // #===============================#

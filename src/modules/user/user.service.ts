@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
+import { DeleteRecordResponseDto } from '@/common/dtos';
 import { ERROR_MESSAGES } from '@/common/constants';
 import { BaseService } from '@/common/base.service';
 import { UserEntity } from '@/modules/user/user.entity';
@@ -93,7 +94,7 @@ export class UserService extends BaseService<UserEntity> {
    * @param id UUID of the user to delete
    * @throws BadRequestException if trying to delete yourself
    */
-  async deleteUserById(authUser: UserEntity, id: string): Promise<void> {
+  async deleteUserById(authUser: UserEntity, id: string): Promise<DeleteRecordResponseDto> {
     // Prevent delete yourself
     if (authUser.id === id)
       throw new BadRequestException({ message: ERROR_MESSAGES.CAN_NOT_DELETE_YOUR_SELF });
@@ -103,5 +104,7 @@ export class UserService extends BaseService<UserEntity> {
 
     // Delete the user
     await this.repository.delete(id);
+
+    return { deleted: true, message: 'User deleted successfully' };
   }
 }

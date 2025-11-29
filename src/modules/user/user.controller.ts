@@ -8,18 +8,16 @@ import {
   Body,
   Delete,
   ParseUUIDPipe,
-  HttpStatus,
   Req,
-  HttpCode,
 } from '@nestjs/common';
+import { Roles } from '@/decorators';
+import type { TRequest } from '@/common/types';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ERoleName } from '@/common/enums';
-import { Roles } from '@/decorators';
-import { ApiOkResponsePaginated } from '@/common/dtos';
+import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
-import type { TRequest } from '@/common/types';
 
 @Controller('users')
 export class UserController {
@@ -67,9 +65,13 @@ export class UserController {
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponse({ type: DeleteRecordResponseDto })
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  deleteUserById(@Req() req: TRequest, @Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  deleteUserById(
+    @Req() req: TRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DeleteRecordResponseDto> {
     return this.userService.deleteUserById(req.authUser, id);
   }
 }

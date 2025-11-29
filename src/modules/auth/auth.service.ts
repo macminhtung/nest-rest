@@ -22,7 +22,6 @@ import {
   SignInResponseDto,
   RefreshTokenDto,
   UpdatePasswordDto,
-  UpdateProfileDto,
 } from '@/modules/auth/dtos';
 import { UserTokenEntity } from '../user/user-token/user-token.entity';
 
@@ -333,20 +332,5 @@ export class AuthService extends BaseService<UserEntity> {
     this.setRefreshTokenIntoCookie(res, newRefreshToken);
 
     return { accessToken: newAccessToken };
-  }
-
-  // #=====================#
-  // # ==> GET PROFILE <== #
-  // #=====================#
-  getProfile(req: TRequest) {
-    return { ...req.authUser, password: undefined };
-  }
-
-  // #========================#
-  // # ==> UPDATE PROFILE <== #
-  // #========================#
-  async updateProfile(req: TRequest, payload: UpdateProfileDto) {
-    await this.repository.update(req.authUser.id, payload);
-    return payload;
   }
 }
