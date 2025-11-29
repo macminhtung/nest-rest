@@ -9,11 +9,11 @@ export class ProjectEntity extends BaseEntity {
   @PrimaryColumn('uuid')
   id: string;
 
-  @Column({ length: 100 })
+  @Column()
   @Index()
   name: string;
 
-  @Column({ type: 'text', length: 1000 })
+  @Column({ type: 'text' })
   description: string;
 
   // Relation tables

@@ -6,7 +6,7 @@ import { BaseEntity } from '@/common/base.entity';
 @Entity({ name: ETableName.ROLE })
 export class RoleEntity extends BaseEntity {
   @ApiProperty()
-  @PrimaryColumn({ type: 'int4' })
+  @PrimaryColumn({ type: 'int' })
   id: string;
 
   @ApiProperty()
