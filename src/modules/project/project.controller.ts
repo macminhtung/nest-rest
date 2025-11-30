@@ -67,7 +67,7 @@ export class ProjectController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(ProjectEntity)
   @Get()
-  getPaginatedUsers(@Query() queryParams: GetProjectsPaginatedDto) {
+  getPaginatedProjects(@Query() queryParams: GetProjectsPaginatedDto) {
     return this.projectService.getPaginatedProjects(queryParams);
   }
 
