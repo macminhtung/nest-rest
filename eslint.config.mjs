@@ -35,12 +35,13 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 0,
       '@typescript-eslint/restrict-template-expressions': 0,
       '@typescript-eslint/no-unused-expressions': 0,
-      "prettier/prettier": [
-        "error",
+      '@typescript-eslint/unbound-method': 0,
+      'prettier/prettier': [
+        'error',
         {
-          "endOfLine": "auto"
-        }
-      ]
+          endOfLine: 'auto',
+        },
+      ],
     },
   },
 );
