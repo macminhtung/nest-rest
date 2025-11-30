@@ -49,11 +49,14 @@ export class AuthService extends BaseService<UserEntity> {
     // Verify token
     const decodeToken = this.jwtService.verifyToken({ type, token });
 
+    // Generate hashToken
+    const hashToken = this.userTokenService.generateHashToken(token);
+
     // Check user already exists
     const existedUser = await this.userService.checkExist(
       {
         select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId', 'role'],
-        where: { id: decodeToken.id },
+        where: { id: decodeToken.id, userTokens: { type, hashToken } },
         relations: { role: true },
       },
       errorMessage,
