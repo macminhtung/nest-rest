@@ -10,6 +10,8 @@ import { ApiValidationPipe } from '@/pipes';
 import { typeormConfig } from '@/config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
+import { TaskModule } from '@/modules/task/task.module';
+import { ProjectModule } from '@/modules/project/project.module';
 import { SharedModule } from '@/modules/shared/shared.module';
 
 @Module({
@@ -31,6 +33,8 @@ import { SharedModule } from '@/modules/shared/shared.module';
 
     SharedModule,
     UserModule,
+    TaskModule,
+    ProjectModule,
     AuthModule,
   ],
   providers: [

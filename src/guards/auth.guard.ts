@@ -14,7 +14,9 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Get token from request
     const request = context.switchToHttp().getRequest<TRequest>();
-    const accessToken = `${request.headers?.['xt-sol-api-key']}`.replace('Bearer ', '') || '';
+    const accessToken = request.headers?.['xt-sol-api-key']
+      ? `${request.headers?.['xt-sol-api-key']}`.replace('Bearer ', '')
+      : '';
 
     // #==========================#
     // # ==> CASE: PUBLIC API <== #

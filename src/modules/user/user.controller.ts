@@ -2,7 +2,7 @@ import {
   Controller,
   Post,
   Get,
-  Put,
+  Patch,
   Param,
   Query,
   Body,
@@ -37,7 +37,7 @@ export class UserController {
   // #=====================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
-  @Put(':id')
+  @Patch(':id')
   updateUser(@Param('id') id: string, @Body() payload: UpdateUserDto) {
     return this.userService.updateUser(id, payload);
   }

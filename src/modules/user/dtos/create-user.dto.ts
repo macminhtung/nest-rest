@@ -9,7 +9,7 @@ export class CreateUserDto {
   @ApiProperty()
   @IsString()
   @MaxLength(40)
-  firstName: string;
+  firstName?: string;
 
   @ApiProperty()
   @IsString()
@@ -20,5 +20,5 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @MaxLength(200)
-  location: string;
+  location?: string;
 }

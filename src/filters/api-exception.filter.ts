@@ -27,10 +27,10 @@ export class ApiExceptionsFilter implements ExceptionFilter {
 
     // CASE: QueryFailedError
     if (exception instanceof QueryFailedError) {
-      const { query, parameters } = exception;
+      const { query, parameters, stack } = exception;
 
       // Display database error
-      this.logger.error(`${query} - ${parameters}`);
+      this.logger.error(`${query} - ${parameters} - ${stack}`);
 
       return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

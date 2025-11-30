@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import crypto from 'crypto';
+import { v7 as uuidv7 } from 'uuid';
 import { ETokenType } from '@/common/enums';
 import { BaseService } from '@/common/base.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
@@ -68,6 +69,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
 
         // Create [NEW] accessToken
         await repository.save({
+          id: uuidv7(),
           type: ETokenType.ACCESS_TOKEN,
           hashToken: this.generateHashToken(newAccessToken),
           refreshTokenId,
@@ -92,7 +94,9 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       }
 
       // Create [NEW] refreshToken
-      const { id: refreshTokenId } = await repository.save({
+      const refreshTokenId = uuidv7();
+      await repository.save({
+        id: refreshTokenId,
         type: ETokenType.REFRESH_TOKEN,
         hashToken: this.generateHashToken(payload.newRefreshToken),
         userId,
@@ -100,6 +104,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
 
       // Create [NEW] accessToken
       await repository.save({
+        id: uuidv7(),
         type: ETokenType.ACCESS_TOKEN,
         hashToken: this.generateHashToken(newAccessToken),
         refreshTokenId,

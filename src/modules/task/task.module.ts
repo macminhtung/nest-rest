@@ -11,4 +11,4 @@ import { TaskEntity } from '@/modules/task/task.entity';
   controllers: [TaskController],
   providers: [TaskService],
 })
-export class TasksModule {}
+export class TaskModule {}
