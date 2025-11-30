@@ -39,7 +39,7 @@ export class JwtService {
 
   generateToken<T extends ETokenType>(payload: TGenerateToken<T>) {
     const { tokenPayload, options } = payload;
-    return jwt.sign(tokenPayload, this.jwtSecretKey, options || { expiresIn: '10m' });
+    return jwt.sign(tokenPayload, this.jwtSecretKey, options || { expiresIn: '10min' });
   }
 
   verifyToken<T extends ETokenType>(payload: TVerifyToken<T>) {

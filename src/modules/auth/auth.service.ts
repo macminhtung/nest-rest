@@ -144,7 +144,7 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: '10m' },
+      options: { expiresIn: '10min' },
     });
 
     // Generate new refreshToken
@@ -244,7 +244,7 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { id, email, isAccessToken: true },
-      options: { expiresIn: 5 },
+      options: { expiresIn: '10min' },
     });
 
     // Store new accessToken
@@ -295,7 +295,7 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: '10m' },
+      options: { expiresIn: '10min' },
     });
 
     // Generate refreshToken
