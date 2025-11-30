@@ -30,8 +30,8 @@ export class UserEntity extends BaseEntity {
   password: string;
 
   @ApiProperty()
-  @Column({ length: 40 })
   @Index()
+  @Column({ length: 40 })
   firstName: string;
 
   @ApiProperty()

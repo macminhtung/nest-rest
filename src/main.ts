@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { Logger } from '@nestjs/common';
 import { AppModule } from '@/app.module';
+import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -14,8 +15,15 @@ async function bootstrap() {
   // #============================#
   // # ==> APIs DOCUMENTATION <== #
   // #============================#
-  const config = new DocumentBuilder().setTitle('APIs Documentation').addBearerAuth().build();
-  SwaggerModule.setup('documentation', app, () => SwaggerModule.createDocument(app, config));
+  const config = new DocumentBuilder()
+    .setTitle('APIs Documentation')
+    .addApiKey(
+      { type: 'apiKey', name: ACCESS_TOKEN_HEADER_KEY, in: 'header' },
+      ACCESS_TOKEN_HEADER_KEY,
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('documentation', app, document);
 
   // #===========================#
   // # ==> START APPLICATION <== #

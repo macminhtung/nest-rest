@@ -1,6 +1,7 @@
 import { Controller, Post, Put, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 import { Public } from '@/decorators';
 import { AuthService } from '@/modules/auth/auth.service';
 import { UserEntity } from '@/modules/user/user.entity';
@@ -13,6 +14,7 @@ import {
   UpdatePasswordDto,
 } from '@/modules/auth/dtos';
 
+@ApiSecurity(ACCESS_TOKEN_HEADER_KEY)
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

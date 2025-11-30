@@ -4,6 +4,8 @@ import type { TRequest } from '@/common/types';
 import { EMetadataKey, ETokenType } from '@/common/enums';
 import { AuthService } from '@/modules/auth/auth.service';
 
+export const ACCESS_TOKEN_HEADER_KEY = 'xt-sol-api-key';
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -14,8 +16,8 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Get token from request
     const request = context.switchToHttp().getRequest<TRequest>();
-    const accessToken = request.headers?.['xt-sol-api-key']
-      ? `${request.headers?.['xt-sol-api-key']}`.replace('Bearer ', '')
+    const accessToken = request.headers?.[ACCESS_TOKEN_HEADER_KEY]
+      ? `${request.headers?.[ACCESS_TOKEN_HEADER_KEY]}`.replace('Bearer ', '')
       : '';
 
     // #==========================#

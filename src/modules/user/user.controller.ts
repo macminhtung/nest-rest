@@ -12,13 +12,15 @@ import {
 } from '@nestjs/common';
 import { Roles } from '@/decorators';
 import type { TRequest } from '@/common/types';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 import { ERoleName } from '@/common/enums';
 import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 
+@ApiSecurity(ACCESS_TOKEN_HEADER_KEY)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -28,7 +30,7 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Post()
-  createUser(@Body() payload: CreateUserDto) {
+  createUser(@Body() payload: CreateUserDto): Promise<UserEntity> {
     return this.userService.createUser(payload);
   }
 
@@ -38,7 +40,7 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Patch(':id')
-  updateUser(@Param('id') id: string, @Body() payload: UpdateUserDto) {
+  updateUser(@Param('id') id: string, @Body() payload: UpdateUserDto): Promise<UserEntity> {
     return this.userService.updateUser(id, payload);
   }
 
@@ -48,7 +50,7 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Get(':id')
-  getUserById(@Param('id', ParseUUIDPipe) id: string) {
+  getUserById(@Param('id', ParseUUIDPipe) id: string): Promise<UserEntity | null> {
     return this.userService.getUserById(id);
   }
 

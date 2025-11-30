@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { ERROR_MESSAGES } from '@/common/constants';
-import { EOrder } from '@/common/enums';
+import { EOrder, EBoolean } from '@/common/enums';
 import {
   ConflictException,
   Injectable,
@@ -129,7 +129,8 @@ export class BaseService<E extends ObjectLiteral> {
     if (createdTo) qb.andWhere(`${this.entityName}.createdAt < :createdTo`, { createdTo });
 
     // Query deleted records
-    if (isDeleted) qb.andWhere(`${this.entityName}.deletedAt IS NOT NULL`).withDeleted();
+    if (isDeleted === EBoolean.TRUE)
+      qb.andWhere(`${this.entityName}.deletedAt IS NOT NULL`).withDeleted();
 
     // Run customFilter function
     customFilter && customFilter(qb);
@@ -138,7 +139,7 @@ export class BaseService<E extends ObjectLiteral> {
     qb.addOrderBy(`${this.entityName}.createdAt`, order);
 
     // CASE: Select all records
-    if (isSelectAll) qb.limit(NUM_LIMIT_RECORDS);
+    if (isSelectAll === EBoolean.TRUE) qb.limit(NUM_LIMIT_RECORDS);
     // CASE: Select pagination records
     else qb.take(take).skip((page - 1) * take);
 

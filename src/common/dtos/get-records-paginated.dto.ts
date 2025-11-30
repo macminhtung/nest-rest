@@ -9,13 +9,12 @@ import {
   Min,
   ArrayMinSize,
   ArrayMaxSize,
-  IsBoolean,
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EOrder } from '@/common/enums';
+import { EOrder, EBoolean } from '@/common/enums';
 
 export const NUM_LIMIT_RECORDS = 100000;
 export const DEFAULT_PAGE_NUM = 1;
@@ -67,10 +66,10 @@ export class GetPaginatedRecordsDto {
   @IsString()
   keySearch?: string;
 
-  @ApiPropertyOptional({ type: 'boolean', default: false })
+  @ApiPropertyOptional({ enum: EBoolean })
   @IsOptional()
-  @IsBoolean()
-  isDeleted?: boolean;
+  @IsEnum(EBoolean)
+  isDeleted?: EBoolean;
 
   @ApiPropertyOptional({ type: Array<string> })
   @IsOptional()
@@ -97,8 +96,8 @@ export class GetPaginatedRecordsDto {
   @IsDateString()
   createdTo?: string;
 
-  @ApiPropertyOptional({ type: 'boolean', default: false })
+  @ApiPropertyOptional({ enum: EBoolean })
   @IsOptional()
-  @IsBoolean()
-  isSelectAll?: boolean;
+  @IsEnum(EBoolean)
+  isSelectAll?: EBoolean;
 }

@@ -9,7 +9,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
+import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 import { Roles } from '@/decorators';
 import { ERoleName } from '@/common/enums';
 import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
@@ -17,6 +18,7 @@ import { TaskEntity } from '@/modules/task/task.entity';
 import { TaskService } from '@/modules/task/task.service';
 import { CreateTaskDto, UpdateTaskDto, GetTasksPaginatedDto } from '@/modules/task/dtos';
 
+@ApiSecurity(ACCESS_TOKEN_HEADER_KEY)
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}

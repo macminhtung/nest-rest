@@ -9,6 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 import { Roles } from '@/decorators';
 import { ERoleName } from '@/common/enums';
 import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
@@ -20,8 +21,9 @@ import {
   GetProjectsPaginatedDto,
   AddUserToProjectDto,
 } from '@/modules/project/dtos';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity } from '@nestjs/swagger';
 
+@ApiSecurity(ACCESS_TOKEN_HEADER_KEY)
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}

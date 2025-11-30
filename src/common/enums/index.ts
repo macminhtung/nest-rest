@@ -5,3 +5,4 @@ export * from './order';
 export * from './cookie-key';
 export * from './token-type';
 export * from './task-status';
+export * from './boolean';

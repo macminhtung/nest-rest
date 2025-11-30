@@ -7,6 +7,7 @@ export class ApiLoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest();
     const { ip, method, originalUrl } = request;
+
     this.logger.log(`==> REQUEST: ${ip} ${method} ${originalUrl}`);
 
     return next.handle();

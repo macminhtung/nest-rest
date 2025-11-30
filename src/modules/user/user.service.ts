@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { DeleteRecordResponseDto } from '@/common/dtos';
-import { ERROR_MESSAGES } from '@/common/constants';
+import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
 import { BaseService } from '@/common/base.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
@@ -29,7 +29,12 @@ export class UserService extends BaseService<UserEntity> {
     await this.checkConflict({ where: { email } });
 
     // Create newUser
-    const newUser = await this.repository.save({ id: uuidv7(), ...payload });
+    const newUser = await this.repository.save({
+      id: uuidv7(),
+      ...payload,
+      password: '',
+      roleId: DEFAULT_ROLES.USER.id,
+    });
 
     return newUser;
   }
