@@ -7,10 +7,10 @@ export class GetUsersPaginatedDto extends GetPaginatedRecordsDto {
   @IsOptional()
   @IsArray({ each: true })
   @IsNumber()
-  roleIds: number[];
+  roleIds?: number[];
 
   @ApiPropertyOptional({ type: 'string', description: `User's email` })
   @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 }

@@ -29,6 +29,9 @@ describe('UserController', () => {
     jest.clearAllMocks();
   });
 
+  // #=====================#
+  // # ==> CREATE USER <== #
+  // #=====================#
   it('should create user', async () => {
     const payload: CreateUserDto = { email: 'a@b.com', firstName: 'John', lastName: 'Doe' };
     const user = { id: 'uuid', ...payload } as UserEntity;
@@ -39,6 +42,9 @@ describe('UserController', () => {
     expect(mockUserService.createUser).toHaveBeenCalledWith(payload);
   });
 
+  // #=====================#
+  // # ==> UPDATE USER <== #
+  // #=====================#
   it('should update user', async () => {
     const payload: UpdateUserDto = { firstName: 'Updated' };
     const id = 'uuid';
@@ -50,6 +56,9 @@ describe('UserController', () => {
     expect(mockUserService.updateUser).toHaveBeenCalledWith(id, payload);
   });
 
+  // #========================#
+  // # ==> GET USER BY ID <== #
+  // #========================#
   it('should get user by id', async () => {
     const id = 'uuid';
     const user = { id, email: 'a@b.com' } as UserEntity;
@@ -59,21 +68,9 @@ describe('UserController', () => {
     expect(result).toEqual(user);
   });
 
-  it('should delete user by id', async () => {
-    const req = { authUser: { id: 'authId' } };
-    const id = 'uuid';
-    const response: DeleteRecordResponseDto = {
-      deleted: true,
-      message: 'User deleted successfully',
-    };
-    mockUserService.deleteUserById.mockResolvedValue(response);
-
-    const result = await controller.deleteUserById(req as any, id);
-    expect(result).toEqual(response);
-    expect(mockUserService.deleteUserById).toHaveBeenCalledWith(req.authUser, id);
-  });
-
-  // Nested describe cho paginated
+  // #=============================#
+  // # ==> GET PAGINATED USERS <== #
+  // #=============================#
   describe('getPaginatedUsers', () => {
     it('should return paginated users wrapped in PaginatedResponseDto', async () => {
       const queryParams: GetUsersPaginatedDto = {
@@ -103,5 +100,22 @@ describe('UserController', () => {
       expect(result.records).toHaveLength(1);
       expect(result.total).toBe(1);
     });
+  });
+
+  // #===========================#
+  // # ==> DELETE USER BY ID <== #
+  // #===========================#
+  it('should delete user by id', async () => {
+    const req = { authUser: { id: 'authId' } };
+    const id = 'uuid';
+    const response: DeleteRecordResponseDto = {
+      deleted: true,
+      message: 'User deleted successfully',
+    };
+    mockUserService.deleteUserById.mockResolvedValue(response);
+
+    const result = await controller.deleteUserById(req as any, id);
+    expect(result).toEqual(response);
+    expect(mockUserService.deleteUserById).toHaveBeenCalledWith(req.authUser, id);
   });
 });

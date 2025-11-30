@@ -2,10 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { UserService } from './user.service';
-import { UserEntity } from './user.entity';
+import { UserService } from '@/modules/user/user.service';
+import { UserEntity } from '@/modules/user/user.entity';
 import { DEFAULT_ROLES } from '@/common/constants';
-import { CreateUserDto, UpdateUserDto } from './dtos';
+import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
+import { EBoolean, EOrder } from '@/common/enums';
+import { PaginatedResponseDto } from '@/common/dtos';
 
 describe('UserService', () => {
   let service: UserService;
@@ -17,6 +19,7 @@ describe('UserService', () => {
     update: jest.fn(),
     findOne: jest.fn(),
     delete: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   // Mock DataSource (BaseService có thể dùng)
@@ -40,6 +43,9 @@ describe('UserService', () => {
     jest.clearAllMocks();
   });
 
+  // #=====================#
+  // # ==> CREATE USER <== #
+  // #=====================#
   describe('createUser', () => {
     it('should create a new user', async () => {
       const payload: CreateUserDto = { email: 'test@test.com', firstName: 'John', lastName: 'Doe' };
@@ -61,6 +67,9 @@ describe('UserService', () => {
     });
   });
 
+  // #=====================#
+  // # ==> UPDATE USER <== #
+  // #=====================#
   describe('updateUser', () => {
     it('should update existing user', async () => {
       const id = 'uuid';
@@ -83,6 +92,9 @@ describe('UserService', () => {
     });
   });
 
+  // #========================#
+  // # ==> GET USER BY ID <== #
+  // #========================#
   describe('getUserById', () => {
     it('should return user by id', async () => {
       const id = 'uuid';
@@ -94,6 +106,43 @@ describe('UserService', () => {
     });
   });
 
+  describe('getPaginatedUsers', () => {
+    it('should return paginated users wrapped in PaginatedResponseDto', async () => {
+      const args: GetUsersPaginatedDto = {
+        page: 1,
+        take: 30,
+        order: EOrder.ASC,
+        isSelectAll: EBoolean.FALSE,
+      };
+
+      const users = [{ id: 'uuid1' }, { id: 'uuid2' }];
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        whereInIds: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        withDeleted: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([users, users.length]),
+      };
+
+      mockUserRepository.createQueryBuilder.mockReturnValue(qbMock);
+
+      const result = await service.getPaginatedUsers(args);
+
+      expect(result).toBeInstanceOf(PaginatedResponseDto);
+      expect(result.records).toEqual(users);
+      expect(qbMock.addOrderBy).toHaveBeenCalled();
+      expect(qbMock.take).toHaveBeenCalledWith(args.take);
+      expect(qbMock.skip).toHaveBeenCalledWith(((args.page || 1) - 1) * (args.take || 30));
+    });
+  });
+
+  // #===========================#
+  // # ==> DELETE USER BY ID <== #
+  // #===========================#
   describe('deleteUserById', () => {
     it('should throw if user deletes self', async () => {
       const authUser = { id: 'uuid' } as UserEntity;
