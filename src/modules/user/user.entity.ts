@@ -31,11 +31,11 @@ export class UserEntity extends BaseEntity {
 
   @ApiProperty()
   @Index()
-  @Column({ length: 40 })
+  @Column({ length: 40, nullable: true })
   firstName: string;
 
   @ApiProperty()
-  @Column({ length: 40 })
+  @Column({ length: 40, nullable: true })
   @Index()
   lastName: string;
 

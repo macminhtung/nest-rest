@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseService } from '@/common/base.service';
-import { DeleteRecordResponseDto } from 'src/common/dtos';
+import { DeleteRecordResponseDto } from '@/common/dtos';
 import { ProjectService } from '@/modules/project/project.service';
 import { UserService } from '@/modules/user/user.service';
 import { TaskEntity } from '@/modules/task/task.entity';

@@ -1,5 +1,5 @@
 import { IsEnum, IsString, IsUUID, MaxLength } from 'class-validator';
-import { ETaskStatus } from 'src/common/enums';
+import { ETaskStatus } from '@/common/enums';
 
 export class CreateTaskDto {
   @IsString()

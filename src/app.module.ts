@@ -13,6 +13,8 @@ import { UserModule } from '@/modules/user/user.module';
 import { TaskModule } from '@/modules/task/task.module';
 import { ProjectModule } from '@/modules/project/project.module';
 import { SharedModule } from '@/modules/shared/shared.module';
+import { AppController } from '@/app.controller';
+import { AppService } from '@/app.service';
 
 @Module({
   imports: [
@@ -37,7 +39,10 @@ import { SharedModule } from '@/modules/shared/shared.module';
     ProjectModule,
     AuthModule,
   ],
+  controllers: [AppController],
   providers: [
+    AppService,
+
     // #===================================#
     // # ==> [INTERCEPTOR] API LOGGING <== #
     // #===================================#

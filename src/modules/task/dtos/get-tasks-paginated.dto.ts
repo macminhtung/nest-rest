@@ -1,6 +1,6 @@
 import { GetPaginatedRecordsDto } from '@/common/dtos';
 import { IsOptional, IsEnum, IsUUID } from 'class-validator';
-import { ETaskStatus } from 'src/common/enums';
+import { ETaskStatus } from '@/common/enums';
 
 export class GetTasksPaginatedDto extends GetPaginatedRecordsDto {
   @IsOptional()

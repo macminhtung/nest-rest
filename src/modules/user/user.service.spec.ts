@@ -106,6 +106,9 @@ describe('UserService', () => {
     });
   });
 
+  // #=============================#
+  // # ==> GET PAGINATED USERS <== #
+  // #=============================#
   describe('getPaginatedUsers', () => {
     it('should return paginated users wrapped in PaginatedResponseDto', async () => {
       const args: GetUsersPaginatedDto = {

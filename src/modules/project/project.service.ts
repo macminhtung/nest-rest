@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseService } from '@/common/base.service';
-import { DeleteRecordResponseDto } from 'src/common/dtos';
+import { DeleteRecordResponseDto } from '@/common/dtos';
 import { Repository } from 'typeorm';
 import { ProjectEntity } from '@/modules/project/project.entity';
 import { UserService } from '@/modules/user/user.service';
