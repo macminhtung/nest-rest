@@ -40,7 +40,10 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Patch(':id')
-  updateUser(@Param('id') id: string, @Body() payload: UpdateUserDto): Promise<UserEntity> {
+  updateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: UpdateUserDto,
+  ): Promise<UserEntity> {
     return this.userService.updateUser(id, payload);
   }
 

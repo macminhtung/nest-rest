@@ -10,8 +10,9 @@ import { DEFAULT_ROLES } from '@/common/constants';
 
 export class TestApp {
   app: INestApplication;
+  authId: string;
   accessToken: string;
-  testUUID = '019ad442-7d5c-725c-ba30-80ae6cb7bb53';
+  testUUID = '2ba986fa-28a3-4b20-ac4a-5b2b09238154';
 
   static async create(): Promise<TestApp> {
     const testApp = new TestApp();
@@ -33,7 +34,7 @@ export class TestApp {
 
     // Signup
     const authService = moduleFixture.get<AuthService>(AuthService);
-    await authService.signUp({ email: 'whxoans@gmail.com', password: '123456' });
+    const { id } = await authService.signUp({ email: 'whxoans@gmail.com', password: '123456' });
 
     // Signin to get the accessToken
     const fakeRes = { cookie: jest.fn() } as unknown as Response;
@@ -42,6 +43,7 @@ export class TestApp {
       password: '123456',
     });
     testApp.accessToken = accessToken;
+    testApp.authId = id;
 
     return testApp;
   }

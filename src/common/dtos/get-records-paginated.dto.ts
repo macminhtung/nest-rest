@@ -12,9 +12,11 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
+  IsUUID,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { EOrder, EBoolean } from '@/common/enums';
+import { Transform } from 'class-transformer';
 
 export const NUM_LIMIT_RECORDS = 100000;
 export const DEFAULT_PAGE_NUM = 1;
@@ -73,6 +75,8 @@ export class GetPaginatedRecordsDto {
 
   @ApiPropertyOptional({ type: Array<string> })
   @IsOptional()
+  @Transform(({ value }) => (value ? (Array.isArray(value) ? value : [value]) : undefined))
+  @IsUUID('7', { each: true })
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
@@ -80,6 +84,8 @@ export class GetPaginatedRecordsDto {
 
   @ApiPropertyOptional({ type: Array<string> })
   @IsOptional()
+  @Transform(({ value }) => (value ? (Array.isArray(value) ? value : [value]) : undefined))
+  @IsUUID('7', { each: true })
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)
