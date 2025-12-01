@@ -8,9 +8,9 @@ export class BaseEntity {
 
   @ApiProperty()
   @UpdateDateColumn({ type: 'timestamp', nullable: true })
-  updatedAt: Date;
+  updatedAt?: Date;
 
   @ApiProperty()
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  deletedAt: Date;
+  deletedAt?: Date;
 }

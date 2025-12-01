@@ -50,16 +50,16 @@ export class UserEntity extends BaseEntity {
 
   // Relation tables
   @ApiPropertyOptional()
-  @ManyToOne(() => RoleEntity, { onDelete: 'RESTRICT' })
-  role: RoleEntity;
+  @ManyToOne(() => RoleEntity)
+  role?: RoleEntity;
 
   @OneToMany(() => UserTokenEntity, (e) => e.user)
-  userTokens: UserTokenEntity[];
+  userTokens?: UserTokenEntity[];
 
   @OneToMany(() => TaskEntity, (task) => task.user)
-  tasks: TaskEntity[];
+  tasks?: TaskEntity[];
 
   @ManyToMany(() => ProjectEntity, (project) => project.users)
   @JoinTable({ name: ETableName.USER_PROJECT })
-  projects: ProjectEntity[];
+  projects?: ProjectEntity[];
 }

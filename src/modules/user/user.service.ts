@@ -60,8 +60,8 @@ export class UserService extends BaseService<UserEntity> {
    * @param id UUID of the user
    * @returns UserEntity or null if not found
    */
-  async getUserById(id: string): Promise<UserEntity | null> {
-    return await this.repository.findOne({ where: { id }, relations: { role: true } });
+  async getUserById(id: string): Promise<UserEntity> {
+    return await this.checkExist({ where: { id } });
   }
 
   /**

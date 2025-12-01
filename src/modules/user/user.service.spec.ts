@@ -48,15 +48,20 @@ describe('UserService', () => {
   // #=====================#
   describe('createUser', () => {
     it('should create a new user', async () => {
-      const payload: CreateUserDto = { email: 'test@test.com', firstName: 'John', lastName: 'Doe' };
+      const payload: CreateUserDto = {
+        email: 'test@test.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        location: 'Location',
+      };
 
-      jest.spyOn(service, 'checkConflict' as any).mockResolvedValue(undefined);
+      jest.spyOn(service, 'checkConflict').mockResolvedValue(undefined);
 
       mockUserRepository.save.mockResolvedValue({
         id: 'uuid',
         ...payload,
-        roleId: DEFAULT_ROLES.USER.id,
         password: '',
+        roleId: DEFAULT_ROLES.USER.id,
       });
 
       const result = await service.createUser(payload);
@@ -64,6 +69,10 @@ describe('UserService', () => {
       expect(service.checkConflict).toHaveBeenCalledWith({ where: { email: payload.email } });
       expect(result).toHaveProperty('id');
       expect(result.email).toBe(payload.email);
+      expect(result.firstName).toBe(payload.firstName);
+      expect(result.lastName).toBe(payload.lastName);
+      expect(result.location).toBe(payload.location);
+      expect(result.roleId).toBe(DEFAULT_ROLES.USER.id);
     });
   });
 
@@ -73,22 +82,31 @@ describe('UserService', () => {
   describe('updateUser', () => {
     it('should update existing user', async () => {
       const id = 'uuid';
-      const payload: UpdateUserDto = { firstName: 'Updated' };
-      const existedUser = {
+      const payload: UpdateUserDto = { firstName: 'Update firstName', location: 'Update Location' };
+      const existedUser: UserEntity = {
         id,
-        email: 'test@test.com',
         firstName: 'John',
         lastName: 'Doe',
-      } as UserEntity;
+        location: '',
+        email: '',
+        password: '',
+        roleId: DEFAULT_ROLES.USER.id,
+        createdAt: new Date(),
+      };
 
-      jest.spyOn(service, 'checkExist' as any).mockResolvedValue(existedUser);
+      jest.spyOn(service, 'checkExist').mockResolvedValue(existedUser);
       mockUserRepository.update.mockResolvedValue(undefined);
-
       const result = await service.updateUser(id, payload);
 
       expect(service.checkExist).toHaveBeenCalledWith({ where: { id } });
       expect(mockUserRepository.update).toHaveBeenCalledWith(id, payload);
+      expect(result.id).toBe(existedUser.id);
+      expect(result.email).toBe(existedUser.email);
       expect(result.firstName).toBe(payload.firstName);
+      expect(result.lastName).toBe(existedUser.lastName);
+      expect(result.location).toBe(payload.location);
+      expect(result.roleId).toBe(existedUser.roleId);
+      expect(result.createdAt).toBe(existedUser.createdAt);
     });
   });
 
@@ -98,11 +116,28 @@ describe('UserService', () => {
   describe('getUserById', () => {
     it('should return user by id', async () => {
       const id = 'uuid';
-      const user = { id, email: 'test@test.com' };
-      mockUserRepository.findOne.mockResolvedValue(user as any);
+      const existedUser: UserEntity = {
+        id,
+        firstName: 'John',
+        lastName: 'Doe',
+        location: '',
+        email: '',
+        password: '',
+        roleId: DEFAULT_ROLES.USER.id,
+        createdAt: new Date(),
+      };
 
+      jest.spyOn(service, 'checkExist').mockResolvedValue(existedUser);
       const result = await service.getUserById(id);
-      expect(result).toEqual(user);
+
+      expect(service.checkExist).toHaveBeenCalledWith({ where: { id } });
+      expect(result.id).toBe(existedUser.id);
+      expect(result.email).toBe(existedUser.email);
+      expect(result.firstName).toBe(existedUser.firstName);
+      expect(result.lastName).toBe(existedUser.lastName);
+      expect(result.location).toBe(existedUser.location);
+      expect(result.roleId).toBe(existedUser.roleId);
+      expect(result.createdAt).toBe(existedUser.createdAt);
     });
   });
 
@@ -132,7 +167,6 @@ describe('UserService', () => {
       };
 
       mockUserRepository.createQueryBuilder.mockReturnValue(qbMock);
-
       const result = await service.getPaginatedUsers(args);
 
       expect(result).toBeInstanceOf(PaginatedResponseDto);
@@ -147,21 +181,51 @@ describe('UserService', () => {
   // # ==> DELETE USER BY ID <== #
   // #===========================#
   describe('deleteUserById', () => {
-    it('should throw if user deletes self', async () => {
-      const authUser = { id: 'uuid' } as UserEntity;
+    const authUser: UserEntity = {
+      id: 'uuid-admin',
+      firstName: 'Admin',
+      lastName: '',
+      location: '',
+      email: '',
+      password: '',
+      roleId: DEFAULT_ROLES.ADMIN.id,
+      createdAt: new Date(),
+    };
 
-      await expect(service.deleteUserById(authUser, 'uuid')).rejects.toThrowError(
+    it('should throw if user deletes self', async () => {
+      const authUser: UserEntity = {
+        id: 'uuid-admin',
+        firstName: 'Admin',
+        lastName: '',
+        location: '',
+        email: '',
+        password: '',
+        roleId: DEFAULT_ROLES.USER.id,
+        createdAt: new Date(),
+      };
+
+      await expect(service.deleteUserById(authUser, 'uuid-admin')).rejects.toThrow(
         BadRequestException,
       );
     });
 
     it('should delete other user successfully', async () => {
-      const authUser = { id: 'authId' } as UserEntity;
+      const user: UserEntity = {
+        id: 'uuid-user',
+        firstName: 'User',
+        lastName: '',
+        location: '',
+        email: '',
+        password: '',
+        roleId: DEFAULT_ROLES.USER.id,
+        createdAt: new Date(),
+      };
 
-      jest.spyOn(service, 'checkExist' as any).mockResolvedValue({ id: 'uuid' } as UserEntity);
+      jest.spyOn(service, 'checkExist').mockResolvedValue(user);
       mockUserRepository.delete.mockResolvedValue(undefined);
+      const result = await service.deleteUserById(authUser, user.id);
 
-      const result = await service.deleteUserById(authUser, 'uuid');
+      expect(service.checkExist).toHaveBeenCalledWith({ where: { id: user.id } });
       expect(result).toEqual({ deleted: true, message: 'User deleted successfully' });
     });
   });

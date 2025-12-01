@@ -50,7 +50,7 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
   @Get(':id')
-  getUserById(@Param('id', ParseUUIDPipe) id: string): Promise<UserEntity | null> {
+  getUserById(@Param('id', ParseUUIDPipe) id: string): Promise<UserEntity> {
     return this.userService.getUserById(id);
   }
 
