@@ -5,6 +5,7 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { ACCESS_TOKEN_HEADER_KEY } from '@/guards';
 import { AuthService } from '@/modules/auth/auth.service';
+import { SignUpDto } from '@/modules/auth/dtos';
 import { AppModule } from '@/app.module';
 import { DEFAULT_ROLES } from '@/common/constants';
 
@@ -34,14 +35,12 @@ export class TestApp {
 
     // Signup
     const authService = moduleFixture.get<AuthService>(AuthService);
-    const { id } = await authService.signUp({ email: 'whxoans@gmail.com', password: '123456' });
+    const signupPayload: SignUpDto = { email: 'whxoans@gmail.com', password: '123456' };
+    const { id } = await authService.signUp(signupPayload);
 
     // Signin to get the accessToken
     const fakeRes = { cookie: jest.fn() } as unknown as Response;
-    const { accessToken } = await authService.signIn(fakeRes, {
-      email: 'whxoans@gmail.com',
-      password: '123456',
-    });
+    const { accessToken } = await authService.signIn(fakeRes, signupPayload);
     testApp.accessToken = accessToken;
     testApp.authId = id;
 

@@ -1,14 +1,48 @@
+import { ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
-import { UserEntity } from './user.entity';
-import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from './dtos';
 import { DeleteRecordResponseDto, PaginatedResponseDto } from '@/common/dtos';
+import { DEFAULT_ROLES } from '@/common/constants';
+import { TRequest } from '@/common/types';
+import { UserController } from '@/modules/user/user.controller';
+import { UserService } from '@/modules/user/user.service';
+import { UserEntity } from '@/modules/user/user.entity';
+import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 
 describe('UserController', () => {
   let controller: UserController;
 
-  const mockUserService = {
+  const initAdminUser: UserEntity = {
+    id: 'uuid-admin',
+    email: 'admin@gmail.com',
+    firstName: 'Admin',
+    lastName: '',
+    location: '',
+    password: '',
+    roleId: DEFAULT_ROLES.ADMIN.id,
+    createdAt: new Date(),
+  };
+  const initUser1: UserEntity = {
+    id: 'uuid-1',
+    email: 'user1@gmail.com',
+    firstName: 'FirstName 1',
+    lastName: 'LastName 1',
+    location: 'Location 1',
+    password: '',
+    roleId: DEFAULT_ROLES.USER.id,
+    createdAt: new Date(),
+  };
+  const initUser2: UserEntity = {
+    id: 'uuid-2',
+    email: 'user2@gmail.com',
+    firstName: 'FirstName 2',
+    lastName: 'LastName 2',
+    location: 'Location 2',
+    password: '',
+    roleId: DEFAULT_ROLES.USER.id,
+    createdAt: new Date(),
+  };
+
+  const mockService = {
     createUser: jest.fn(),
     updateUser: jest.fn(),
     getUserById: jest.fn(),
@@ -19,7 +53,7 @@ describe('UserController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [{ provide: UserService, useValue: mockUserService }],
+      providers: [{ provide: UserService, useValue: mockService }],
     }).compile();
 
     controller = module.get<UserController>(UserController);
@@ -32,90 +66,131 @@ describe('UserController', () => {
   // #=====================#
   // # ==> CREATE USER <== #
   // #=====================#
-  it('should create user', async () => {
-    const payload: CreateUserDto = { email: 'a@b.com', firstName: 'John', lastName: 'Doe' };
-    const user = { id: 'uuid', ...payload } as UserEntity;
-    mockUserService.createUser.mockResolvedValue(user);
+  describe('createUser', () => {
+    const createPayload: CreateUserDto = {
+      email: initUser1.email,
+      firstName: initUser1.firstName,
+      lastName: initUser1.lastName,
+    };
 
-    const result = await controller.createUser(payload);
-    expect(result).toEqual(user);
-    expect(mockUserService.createUser).toHaveBeenCalledWith(payload);
+    it('Should create user', async () => {
+      mockService.createUser.mockResolvedValue(initUser1);
+      const result = await controller.createUser(createPayload);
+
+      expect(mockService.createUser).toHaveBeenCalledWith(createPayload);
+      expect(result).toEqual(initUser1);
+    });
+
+    it('Should throw ConflictException if the email already exists', async () => {
+      jest.spyOn(mockService, 'createUser').mockRejectedValueOnce(new ConflictException());
+      await expect(controller.createUser(createPayload)).rejects.toBeInstanceOf(ConflictException);
+    });
   });
 
   // #=====================#
   // # ==> UPDATE USER <== #
   // #=====================#
-  it('should update user', async () => {
-    const payload: UpdateUserDto = { firstName: 'Updated' };
-    const id = 'uuid';
-    const user = { id, email: 'a@b.com', firstName: 'Updated' } as UserEntity;
-    mockUserService.updateUser.mockResolvedValue(user);
+  describe('updateUser', () => {
+    const updatePayload: UpdateUserDto = { firstName: 'FirstName updated' };
 
-    const result = await controller.updateUser(id, payload);
-    expect(result).toEqual(user);
-    expect(mockUserService.updateUser).toHaveBeenCalledWith(id, payload);
+    it('Should update user', async () => {
+      const updatedUser = { ...initUser1, ...updatePayload };
+
+      mockService.updateUser.mockResolvedValue(updatedUser);
+      const result = await controller.updateUser(initUser1.id, updatePayload);
+
+      expect(mockService.updateUser).toHaveBeenCalledWith(initUser1.id, updatePayload);
+      expect(result).toEqual(updatedUser);
+    });
+
+    it('Should throw BadRequestException if sent invalid uuid', async () => {
+      jest.spyOn(mockService, 'updateUser').mockRejectedValueOnce(new BadRequestException());
+      await expect(controller.updateUser('invalid-uuid', updatePayload)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
+    it('Should throw NotFoundException if the user does not exists', async () => {
+      jest.spyOn(mockService, 'updateUser').mockRejectedValueOnce(new NotFoundException());
+      await expect(controller.updateUser(initUser1.id, updatePayload)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
   });
 
   // #========================#
   // # ==> GET USER BY ID <== #
   // #========================#
-  it('should get user by id', async () => {
-    const id = 'uuid';
-    const user = { id, email: 'a@b.com' } as UserEntity;
-    mockUserService.getUserById.mockResolvedValue(user);
+  describe('getUserById', () => {
+    it('Should get user by id', async () => {
+      mockService.getUserById.mockResolvedValue(initUser1);
+      const result = await controller.getUserById(initUser1.id);
 
-    const result = await controller.getUserById(id);
-    expect(result).toEqual(user);
+      expect(result).toEqual(initUser1);
+    });
+
+    it('Should throw NotFoundException if the user does not exists', async () => {
+      jest.spyOn(mockService, 'getUserById').mockRejectedValueOnce(new NotFoundException());
+      await expect(controller.getUserById(initUser1.id)).rejects.toBeInstanceOf(NotFoundException);
+    });
   });
 
   // #=============================#
   // # ==> GET PAGINATED USERS <== #
   // #=============================#
   describe('getPaginatedUsers', () => {
-    it('should return paginated users wrapped in PaginatedResponseDto', async () => {
-      const queryParams: GetUsersPaginatedDto = {
-        page: 1,
-        take: 10,
-        keySearch: 'John',
-        email: 'test@example.com',
-        roleIds: [1],
-      };
-
-      const mockUsers: UserEntity[] = [
-        { id: 'uuid1', email: 'a@b.com', firstName: 'John', lastName: 'Doe' } as UserEntity,
-      ];
-
+    it('Should return paginated users', async () => {
+      const queryParams: GetUsersPaginatedDto = { page: 1, take: 10 };
+      const users: UserEntity[] = [initUser1, initUser2];
       const paginatedResponse = new PaginatedResponseDto<UserEntity>({
         args: queryParams,
-        total: mockUsers.length,
-        records: mockUsers,
+        total: users.length,
+        records: users,
       });
 
-      mockUserService.getPaginatedUsers.mockResolvedValue(paginatedResponse);
-
+      mockService.getPaginatedUsers.mockResolvedValue(paginatedResponse);
       const result = await controller.getPaginatedUsers(queryParams);
 
-      expect(mockUserService.getPaginatedUsers).toHaveBeenCalledWith(queryParams);
+      expect(mockService.getPaginatedUsers).toHaveBeenCalledWith(queryParams);
       expect(result).toEqual(paginatedResponse);
-      expect(result.records).toHaveLength(1);
-      expect(result.total).toBe(1);
+      expect(result.page).toBe(queryParams.page);
+      expect(result.take).toBe(queryParams.take);
+      expect(result.records).toHaveLength(users.length);
+      expect(result.total).toBe(users.length);
     });
   });
 
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
-  it('should delete user by id', async () => {
-    const req = { authUser: { id: 'authId' } };
-    const id = 'uuid';
-    const response: DeleteRecordResponseDto = {
-      deleted: true,
-      message: 'User deleted successfully',
-    };
-    mockUserService.deleteUserById.mockResolvedValue(response);
+  describe('getUserById', () => {
+    const req = { authUser: initAdminUser } as unknown as TRequest;
 
-    const result = await controller.deleteUserById(req as any, id);
-    expect(result).toEqual(response);
-    expect(mockUserService.deleteUserById).toHaveBeenCalledWith(req.authUser, id);
+    it('Should delete user by id', async () => {
+      const response: DeleteRecordResponseDto = {
+        deleted: true,
+        message: 'User deleted successfully',
+      };
+
+      mockService.deleteUserById.mockResolvedValue(response);
+      const result = await controller.deleteUserById(req, initUser1.id);
+
+      expect(mockService.deleteUserById).toHaveBeenCalledWith(req.authUser, initUser1.id);
+      expect(result).toEqual(response);
+    });
+
+    it('Should throw NotFoundException if the user does not exists', async () => {
+      jest.spyOn(mockService, 'deleteUserById').mockRejectedValueOnce(new NotFoundException());
+      await expect(controller.deleteUserById(req, initUser1.id)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('Should throw BadRequestException if user deletes self', async () => {
+      jest.spyOn(mockService, 'deleteUserById').mockRejectedValueOnce(new BadRequestException());
+      await expect(controller.deleteUserById(req, req.authUser.id)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 });

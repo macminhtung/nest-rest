@@ -82,10 +82,10 @@ export class ProjectService extends BaseService<ProjectEntity> {
       const { userId, keySearch } = queryParams;
       const alias = this.entityName;
 
-      qb.leftJoinAndSelect(`${alias}.user`, 'user');
+      qb.leftJoinAndSelect(`${alias}.users`, 'Us');
 
       // Filter based on userId
-      if (userId) qb.andWhere(`user.id = :userId`, { userId });
+      if (userId) qb.andWhere(`Us.id = :userId`, { userId });
 
       // Filter the name based on keySearch
       if (keySearch)
@@ -116,7 +116,7 @@ export class ProjectService extends BaseService<ProjectEntity> {
     });
 
     // Prevent adding if the user already added to the project
-    const { users } = existedProject;
+    const { users = [] } = existedProject;
     if (users.find((i) => i.id === userId)) {
       throw new ConflictException({
         message: `The user has been added to the project`,
@@ -152,7 +152,7 @@ export class ProjectService extends BaseService<ProjectEntity> {
     });
 
     // Prevent adding if the user already added to the project
-    const { users } = existedProject;
+    const { users = [] } = existedProject;
     if (!users.find((i) => i.id === userId)) {
       throw new BadRequestException({
         message: `The user isn't part of the project`,
@@ -166,7 +166,7 @@ export class ProjectService extends BaseService<ProjectEntity> {
       .of(projectId)
       .remove(userId);
 
-    return { ...existedProject, users: users.filter((i) => i.id !== userId) };
+    return { ...existedProject, users: users?.filter((i) => i.id !== userId) };
   }
 
   /**

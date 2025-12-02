@@ -6,5 +6,5 @@ export class GetProjectsPaginatedDto extends GetPaginatedRecordsDto {
   @ApiPropertyOptional({ type: 'string', description: `UserId` })
   @IsOptional()
   @IsUUID(7)
-  userId: string;
+  userId?: string;
 }
