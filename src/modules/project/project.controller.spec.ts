@@ -225,7 +225,7 @@ describe('ProjectController', () => {
       const result = await controller.deleteProjectById(initProject1.id);
 
       expect(service.deleteProjectById).toHaveBeenCalledWith(initProject1.id);
-      expect(result).toEqual({ deleted: true, message: 'Project deleted successfully' });
+      expect(result).toEqual(deletedResponse);
     });
 
     it('Should throw NotFoundException if the project does not exists', async () => {

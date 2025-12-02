@@ -112,10 +112,6 @@ describe('TaskController', () => {
 
       expect(service.getPaginatedTasks).toHaveBeenCalledWith(query);
       expect(result).toEqual(paginatedResponse);
-      expect(result.page).toBe(query.page);
-      expect(result.take).toBe(query.take);
-      expect(result.total).toBe(tasks.length);
-      expect(result.records.length).toBe(tasks.length);
     });
   });
 
@@ -123,15 +119,15 @@ describe('TaskController', () => {
   // # ==> DELETE TASK BY ID <== #
   // #===========================#
   it('Should delete task', async () => {
-    const expected: DeleteRecordResponseDto = {
+    const deletedReponse: DeleteRecordResponseDto = {
       deleted: true,
       message: 'Task deleted sucessfully',
     };
 
-    mockService.deleteTaskById.mockResolvedValue(expected);
+    mockService.deleteTaskById.mockResolvedValue(deletedReponse);
     const result = await controller.deleteTaskById(initTask1.id);
 
     expect(service.deleteTaskById).toHaveBeenCalledWith(initTask1.id);
-    expect(result).toEqual(expected);
+    expect(result).toEqual(deletedReponse);
   });
 });

@@ -35,10 +35,10 @@ describe('User endpoint', () => {
         const user: UserEntity = res.body;
         const { id, email, firstName, lastName, location } = user;
         expect(id).toBeDefined();
-        expect(email).toEqual(createPayload.email);
-        expect(firstName).toEqual(createPayload.firstName);
-        expect(lastName).toEqual(createPayload.lastName);
-        expect(location).toEqual(createPayload.location);
+        expect(email).toBe(createPayload.email);
+        expect(firstName).toBe(createPayload.firstName);
+        expect(lastName).toBe(createPayload.lastName);
+        expect(location).toBe(createPayload.location);
       });
   });
 
@@ -106,10 +106,10 @@ describe('User endpoint', () => {
         const user: UserEntity = res.body;
         const { id, email, firstName, lastName, location } = user;
         expect(id).toBeDefined();
-        expect(email).toEqual(user.email);
-        expect(firstName).toEqual(updatePayload.firstName);
-        expect(lastName).toEqual(updatePayload.lastName);
-        expect(location).toEqual(user.location);
+        expect(email).toBe(user.email);
+        expect(firstName).toBe(updatePayload.firstName);
+        expect(lastName).toBe(updatePayload.lastName);
+        expect(location).toBe(user.location);
       });
   });
 
@@ -167,10 +167,10 @@ describe('User endpoint', () => {
         const user: UserEntity = res.body;
         const { id, email, firstName, lastName, location } = user;
         expect(id).toBeDefined();
-        expect(email).toEqual(createPayload.email);
-        expect(firstName).toEqual(createPayload.firstName);
-        expect(lastName).toEqual(createPayload.lastName);
-        expect(location).toEqual(createPayload.location);
+        expect(email).toBe(createPayload.email);
+        expect(firstName).toBe(createPayload.firstName);
+        expect(lastName).toBe(createPayload.lastName);
+        expect(location).toBe(createPayload.location);
       });
   });
 
@@ -231,12 +231,12 @@ describe('User endpoint', () => {
       .then((res) => {
         const paginatedRes: PaginatedResponseDto<UserEntity> = res.body;
         const { page, take, total, records } = paginatedRes;
-        expect(page).toEqual(queryParams.page);
-        expect(take).toEqual(queryParams.take);
-        expect(total).toEqual(2);
-        expect(records.length).toEqual(2);
-        expect(records[0].email).toEqual(createPayload2.email);
-        expect(records[1].email).toEqual(createPayload1.email);
+        expect(page).toBe(queryParams.page);
+        expect(take).toBe(queryParams.take);
+        expect(total).toBe(2);
+        expect(records.length).toBe(2);
+        expect(records[0].email).toBe(createPayload2.email);
+        expect(records[1].email).toBe(createPayload1.email);
       });
   });
 
@@ -266,11 +266,11 @@ describe('User endpoint', () => {
       .query({ ...queryParams })
       .expect(HttpStatus.OK)
       .then((res) => {
-        const paginatedRes: PaginatedResponseDto<UserEntity> = res.body;
-        const { total, records } = paginatedRes;
-        expect(total).toEqual(1);
-        expect(records.length).toEqual(1);
-        expect(records[0].email).toEqual(createPayload1.email);
+        const paginatedResponse: PaginatedResponseDto<UserEntity> = res.body;
+        const { total, records } = paginatedResponse;
+        expect(total).toBe(1);
+        expect(records.length).toBe(1);
+        expect(records[0].email).toBe(createPayload1.email);
       });
   });
 
@@ -311,8 +311,7 @@ describe('User endpoint', () => {
       location: 'test',
     };
     await testApp.getRequest().post('/users').send(createPayload);
-
-    await testApp.getRequest().delete('/users/1').expect(HttpStatus.BAD_REQUEST);
+    await testApp.getRequest().delete('/users/invalid-uuid').expect(HttpStatus.BAD_REQUEST);
   });
 
   it('/:userId -> DELETE (User not Found)', async () => {
@@ -323,7 +322,6 @@ describe('User endpoint', () => {
       location: 'test',
     };
     await testApp.getRequest().post('/users').send(createPayload);
-
     await testApp.getRequest().delete(`/users/${testApp.testUUID}`).expect(HttpStatus.NOT_FOUND);
   });
 });

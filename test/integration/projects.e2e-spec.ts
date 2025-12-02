@@ -199,7 +199,7 @@ describe('Project endpoint', () => {
       .then((res) => {
         const project: ProjectEntity = res.body;
         expect(project.users).toHaveLength(1);
-        expect(project?.users?.[0].id).toEqual(user.id);
+        expect(project?.users?.[0].id).toBe(user.id);
       });
   });
 

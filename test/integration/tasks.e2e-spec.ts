@@ -123,7 +123,7 @@ describe('Tasks endpoint', () => {
       .send(updatePayload)
       .expect(HttpStatus.OK)
       .then((res) => {
-        expect(res.body.status).toEqual(updatePayload.status);
+        expect(res.body.status).toBe(updatePayload.status);
       });
   });
 
@@ -275,7 +275,7 @@ describe('Tasks endpoint', () => {
       .then((res) => {
         const data: PaginatedResponseDto<TaskEntity> = res.body;
         expect(data.records).toHaveLength(1);
-        expect(data.records[0].name).toEqual(task.name); // Ordered by creation date (newest first)
+        expect(data.records[0].name).toBe(task.name); // Ordered by creation date (newest first)
       });
   });
 

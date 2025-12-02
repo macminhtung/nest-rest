@@ -173,8 +173,8 @@ describe('UserService', () => {
         ((queryParams.page || 1) - 1) * (queryParams.take || 30),
       );
       expect(qbMock.addOrderBy).toHaveBeenCalled();
-      expect(result.page).toEqual(queryParams.page);
-      expect(result.take).toEqual(queryParams.take);
+      expect(result.page).toBe(queryParams.page);
+      expect(result.take).toBe(queryParams.take);
       expect(result.records).toEqual(users);
     });
   });

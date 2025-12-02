@@ -153,10 +153,6 @@ describe('UserController', () => {
 
       expect(mockService.getPaginatedUsers).toHaveBeenCalledWith(queryParams);
       expect(result).toEqual(paginatedResponse);
-      expect(result.page).toBe(queryParams.page);
-      expect(result.take).toBe(queryParams.take);
-      expect(result.records).toHaveLength(users.length);
-      expect(result.total).toBe(users.length);
     });
   });
 
