@@ -7,9 +7,51 @@ import { CreateTaskDto, UpdateTaskDto, GetTasksPaginatedDto } from '@/modules/ta
 import { UserService } from '@/modules/user/user.service';
 import { ProjectService } from '@/modules/project/project.service';
 import { EOrder, ETaskStatus } from '@/common/enums';
+import { UserEntity } from '../user/user.entity';
+import { DEFAULT_ROLES } from '@/common/constants';
+import { ProjectEntity } from '../project/project.entity';
+import { DeleteRecordResponseDto } from '@/common/dtos';
 
 describe('TaskService', () => {
   let service: TaskService;
+
+  const initTask1: TaskEntity = {
+    id: 'uuid-1',
+    name: 'Task 1',
+    description: 'Description 1',
+    projectId: 'projectId',
+    userId: 'userId',
+    status: ETaskStatus.TODO,
+    createdAt: new Date(),
+  };
+
+  const initTask2: TaskEntity = {
+    id: 'uuid-2',
+    name: 'Task 2',
+    description: 'Description 2',
+    projectId: 'projectId',
+    userId: 'userId',
+    status: ETaskStatus.TODO,
+    createdAt: new Date(),
+  };
+
+  const initUser: UserEntity = {
+    id: 'uuid-user',
+    email: 'user@gmail.com',
+    firstName: 'FirstName',
+    lastName: 'LastName',
+    location: 'Location',
+    password: '',
+    roleId: DEFAULT_ROLES.USER.id,
+    createdAt: new Date(),
+  };
+
+  const initProject: ProjectEntity = {
+    id: 'uuid-project',
+    name: 'Project',
+    description: 'Description',
+    createdAt: new Date(),
+  };
 
   // Mock repository
   const mockTaskRepository = {
@@ -47,19 +89,18 @@ describe('TaskService', () => {
   // # ==> CREATE TASK <== #
   // #=====================#
   describe('createTask', () => {
-    it('should create new task', async () => {
+    it('Should create new task', async () => {
       const createPayload: CreateTaskDto = {
-        name: 'Task A',
-        description: 'Desc',
-        userId: 'user-uuid',
-        projectId: 'project-uuid',
+        name: initTask1.name,
+        description: initTask1.description,
+        userId: initUser.id,
+        projectId: initProject.id,
         status: ETaskStatus.TODO,
       };
 
-      mockUserService.checkExist.mockResolvedValue(undefined);
-      mockProjectService.checkExist.mockResolvedValue(undefined);
-      mockTaskRepository.save.mockResolvedValue({ id: 'uuid', ...createPayload });
-
+      mockUserService.checkExist.mockResolvedValue(initUser);
+      mockProjectService.checkExist.mockResolvedValue(initProject);
+      mockTaskRepository.save.mockResolvedValue({ ...initTask1, ...createPayload });
       const result = await service.createTask(createPayload);
 
       expect(mockUserService.checkExist).toHaveBeenCalledWith({
@@ -69,7 +110,7 @@ describe('TaskService', () => {
         where: { id: createPayload.projectId },
       });
       expect(result).toHaveProperty('id');
-      expect(result.name).toBe(createPayload.name);
+      expect(result).toEqual({ ...initTask1, ...createPayload });
     });
   });
 
@@ -77,33 +118,23 @@ describe('TaskService', () => {
   // # ==> UPDATE TASK <== #
   // #=====================#
   describe('updateTask', () => {
-    it('should update existing task', async () => {
-      const id = 'task-uuid';
+    it('Should update task', async () => {
       const payload: UpdateTaskDto = {
-        name: 'Updated',
-        description: 'New',
+        name: 'Updated name',
+        description: 'Updated description',
         userId: 'user-uuid',
         projectId: 'project-uuid',
       };
-      const existedTask: TaskEntity = {
-        id,
-        name: 'Old',
-        description: '',
-        userId: 'old',
-        projectId: 'old',
-        createdAt: new Date(),
-        status: ETaskStatus.TODO,
-      };
-      jest.spyOn(service, 'checkExist').mockResolvedValue(existedTask);
+      jest.spyOn(service, 'checkExist').mockResolvedValue(initTask1);
 
-      mockUserService.checkExist.mockResolvedValue(undefined);
-      mockProjectService.checkExist.mockResolvedValue(undefined);
+      mockUserService.checkExist.mockResolvedValue(initTask1);
+      mockProjectService.checkExist.mockResolvedValue(initProject);
       mockTaskRepository.update.mockResolvedValue(undefined);
 
-      const result = await service.updateTask(id, payload);
+      const result = await service.updateTask(initTask1.id, payload);
 
       expect(service.checkExist).toHaveBeenCalled();
-      expect(mockTaskRepository.update).toHaveBeenCalledWith(id, payload);
+      expect(mockTaskRepository.update).toHaveBeenCalledWith(initTask1.id, payload);
       expect(result.name).toBe(payload.name);
       expect(result.description).toBe(payload.description);
     });
@@ -114,28 +145,17 @@ describe('TaskService', () => {
   // #========================#
   describe('getTaskById', () => {
     it('should return task by id', async () => {
-      const existedTaskId = 'uuid';
-      const existedTask: TaskEntity = {
-        id: existedTaskId,
-        name: 'Old',
-        description: '',
-        userId: 'old',
-        projectId: 'old',
-        createdAt: new Date(),
-        status: ETaskStatus.TODO,
-      };
       const loadUser = true;
       const loadProject = false;
 
-      jest.spyOn(service, 'checkExist').mockResolvedValue(existedTask);
-
-      const result = await service.getTaskById(existedTaskId, loadUser, loadProject);
+      jest.spyOn(service, 'checkExist').mockResolvedValue(initTask1);
+      const result = await service.getTaskById(initTask1.id, loadUser, loadProject);
 
       expect(service.checkExist).toHaveBeenCalledWith({
-        where: { id: existedTaskId },
+        where: { id: initTask1.id },
         relations: { user: loadUser, project: loadProject },
       });
-      expect(result).toBe(existedTask);
+      expect(result).toBe(initTask1);
     });
   });
 
@@ -149,26 +169,7 @@ describe('TaskService', () => {
         take: 10,
         order: EOrder.ASC,
       };
-      const existedTask1: TaskEntity = {
-        id: 'uuid1',
-        name: 'task1',
-        description: '',
-        userId: 'userId',
-        projectId: 'projectId',
-        createdAt: new Date(),
-        status: ETaskStatus.TODO,
-      };
-      const existedTask2: TaskEntity = {
-        id: 'uuid2',
-        name: 'task2',
-        description: '',
-        userId: 'userId',
-        projectId: 'projectId',
-        createdAt: new Date(),
-        status: ETaskStatus.TODO,
-      };
-
-      const tasks = [existedTask1, existedTask2];
+      const tasks = [initTask1, initTask2];
       const qb = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -179,7 +180,6 @@ describe('TaskService', () => {
         getManyAndCount: jest.fn().mockResolvedValue([tasks, tasks.length]),
       };
       mockTaskRepository.createQueryBuilder.mockReturnValue(qb);
-
       const result = await service.getPaginatedTasks(args);
 
       expect(qb.leftJoinAndSelect).toHaveBeenCalled();
@@ -194,26 +194,20 @@ describe('TaskService', () => {
   // # ==> DELETE TASK BY ID <== #
   // #===========================#
   describe('deleteTaskById', () => {
-    it('should delete task successfully', async () => {
-      const existedTaskId = 'task-uuid';
-      const existedTask: TaskEntity = {
-        id: existedTaskId,
-        name: 'Task A',
-        description: 'Desc',
-        userId: 'user-uuid',
-        projectId: 'project-uuid',
-        status: ETaskStatus.TODO,
-        createdAt: new Date(),
+    it('Should delete task successfully', async () => {
+      const deletedResponse: DeleteRecordResponseDto = {
+        deleted: true,
+        message: 'Task deleted successfully',
       };
 
-      jest.spyOn(service, 'checkExist').mockResolvedValue(existedTask);
+      jest.spyOn(service, 'checkExist').mockResolvedValue(initTask1);
       mockTaskRepository.delete.mockResolvedValue(undefined);
 
-      const result = await service.deleteTaskById(existedTaskId);
+      const result = await service.deleteTaskById(initTask1.id);
 
-      expect(service.checkExist).toHaveBeenCalledWith({ where: { id: existedTaskId } });
-      expect(mockTaskRepository.delete).toHaveBeenCalledWith(existedTaskId);
-      expect(result).toEqual({ deleted: true, message: 'Task deleted sucessfully' });
+      expect(service.checkExist).toHaveBeenCalledWith({ where: { id: initTask1.id } });
+      expect(mockTaskRepository.delete).toHaveBeenCalledWith(initTask1.id);
+      expect(result).toEqual(deletedResponse);
     });
   });
 });

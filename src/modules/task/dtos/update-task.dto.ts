@@ -22,11 +22,11 @@ export class UpdateTaskDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID(7)
+  @IsUUID()
   userId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID(7)
+  @IsUUID()
   projectId?: string;
 }

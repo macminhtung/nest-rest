@@ -8,10 +8,10 @@ export class GetTasksPaginatedDto extends GetPaginatedRecordsDto {
   status?: ETaskStatus;
 
   @IsOptional()
-  @IsUUID(7)
+  @IsUUID()
   userId?: string;
 
   @IsOptional()
-  @IsUUID(7)
+  @IsUUID()
   projectId?: string;
 }

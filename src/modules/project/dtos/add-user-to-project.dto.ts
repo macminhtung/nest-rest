@@ -3,6 +3,6 @@ import { IsUUID } from 'class-validator';
 
 export class AddUserToProjectDto {
   @ApiProperty()
-  @IsUUID('7')
+  @IsUUID()
   userId: string;
 }

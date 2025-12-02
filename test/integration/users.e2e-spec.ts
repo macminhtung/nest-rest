@@ -15,54 +15,9 @@ describe('User endpoint', () => {
     await testApp.close();
   });
 
-  it('users/:userId -> GET (Valid user)', async () => {
-    const createPayload: CreateUserDto = {
-      firstName: 'test',
-      lastName: 'test',
-      email: 'test@test.com',
-      location: 'test',
-    };
-    const res = await testApp.getRequest().post('/users').send(createPayload);
-    const createdUser: UserEntity = res.body;
-
-    return await testApp
-      .getRequest()
-      .get(`/users/${createdUser.id}`)
-      .expect(200)
-      .then((res) => {
-        const user: UserEntity = res.body;
-        const { id, email, firstName, lastName, location } = user;
-        expect(id).toBeDefined();
-        expect(email).toEqual(createPayload.email);
-        expect(firstName).toEqual(createPayload.firstName);
-        expect(lastName).toEqual(createPayload.lastName);
-        expect(location).toEqual(createPayload.location);
-      });
-  });
-
-  it('/users/:userId -> GET (Invalid UUID)', async () => {
-    const createPayload: CreateUserDto = {
-      firstName: 'test',
-      lastName: 'test',
-      email: 'test@test.com',
-      location: 'test',
-    };
-    await testApp.getRequest().post('/users').send(createPayload);
-
-    return await testApp.getRequest().get('/users/1').expect(HttpStatus.BAD_REQUEST);
-  });
-
-  it('/users/:userId -> GET (User not Found)', async () => {
-    const createPayload: CreateUserDto = {
-      firstName: 'test',
-      lastName: 'test',
-      email: 'test@test.com',
-      location: 'test',
-    };
-    await testApp.getRequest().post('/users').send(createPayload);
-
-    await testApp.getRequest().get(`/users/${testApp.testUUID}`).expect(HttpStatus.NOT_FOUND);
-  });
+  // #=====================#
+  // # ==> CREATE USER <== #
+  // #=====================#
 
   it('/users -> POST', async () => {
     const createPayload: CreateUserDto = {
@@ -124,6 +79,9 @@ describe('User endpoint', () => {
       .expect(HttpStatus.CONFLICT);
   });
 
+  // #=====================#
+  // # ==> UPDATE USER <== #
+  // #=====================#
   it('/users/:userId -> PATCH (Update user)', async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
@@ -188,7 +146,10 @@ describe('User endpoint', () => {
       .expect(HttpStatus.NOT_FOUND);
   });
 
-  it('/:userId -> DELETE', async () => {
+  // #========================#
+  // # ==> GET USER BY ID <== #
+  // #========================#
+  it('users/:userId -> GET (Valid user)', async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -196,13 +157,24 @@ describe('User endpoint', () => {
       location: 'test',
     };
     const res = await testApp.getRequest().post('/users').send(createPayload);
-    const user: UserEntity = res.body;
+    const createdUser: UserEntity = res.body;
 
-    await testApp.getRequest().delete(`/users/${user.id}`).expect(HttpStatus.OK);
-    await testApp.getRequest().get(`/users/${user.id}`).expect(HttpStatus.NOT_FOUND);
+    return await testApp
+      .getRequest()
+      .get(`/users/${createdUser.id}`)
+      .expect(200)
+      .then((res) => {
+        const user: UserEntity = res.body;
+        const { id, email, firstName, lastName, location } = user;
+        expect(id).toBeDefined();
+        expect(email).toEqual(createPayload.email);
+        expect(firstName).toEqual(createPayload.firstName);
+        expect(lastName).toEqual(createPayload.lastName);
+        expect(location).toEqual(createPayload.location);
+      });
   });
 
-  it('/:userId -> DELETE (Invalid UUID)', async () => {
+  it('/users/:userId -> GET (Invalid UUID)', async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -211,10 +183,10 @@ describe('User endpoint', () => {
     };
     await testApp.getRequest().post('/users').send(createPayload);
 
-    await testApp.getRequest().delete('/users/1').expect(HttpStatus.BAD_REQUEST);
+    return await testApp.getRequest().get('/users/1').expect(HttpStatus.BAD_REQUEST);
   });
 
-  it('/:userId -> DELETE (User not Found)', async () => {
+  it('/users/:userId -> GET (User not Found)', async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -223,9 +195,12 @@ describe('User endpoint', () => {
     };
     await testApp.getRequest().post('/users').send(createPayload);
 
-    await testApp.getRequest().delete(`/users/${testApp.testUUID}`).expect(HttpStatus.NOT_FOUND);
+    await testApp.getRequest().get(`/users/${testApp.testUUID}`).expect(HttpStatus.NOT_FOUND);
   });
 
+  // #=============================#
+  // # ==> GET PAGINATED USERS <== #
+  // #=============================#
   it('/users -> GET (Get users - pagination)', async () => {
     const createPayload1: CreateUserDto = {
       firstName: 'test',
@@ -309,5 +284,46 @@ describe('User endpoint', () => {
       .get('/users')
       .query({ ...queryParams })
       .expect(HttpStatus.BAD_REQUEST);
+  });
+
+  // #===========================#
+  // # ==> DELETE USER BY ID <== #
+  // #===========================#
+  it('/:userId -> DELETE', async () => {
+    const createPayload: CreateUserDto = {
+      firstName: 'test',
+      lastName: 'test',
+      email: 'test@test.com',
+      location: 'test',
+    };
+    const res = await testApp.getRequest().post('/users').send(createPayload);
+    const user: UserEntity = res.body;
+
+    await testApp.getRequest().delete(`/users/${user.id}`).expect(HttpStatus.OK);
+    await testApp.getRequest().get(`/users/${user.id}`).expect(HttpStatus.NOT_FOUND);
+  });
+
+  it('/:userId -> DELETE (Invalid UUID)', async () => {
+    const createPayload: CreateUserDto = {
+      firstName: 'test',
+      lastName: 'test',
+      email: 'test@test.com',
+      location: 'test',
+    };
+    await testApp.getRequest().post('/users').send(createPayload);
+
+    await testApp.getRequest().delete('/users/1').expect(HttpStatus.BAD_REQUEST);
+  });
+
+  it('/:userId -> DELETE (User not Found)', async () => {
+    const createPayload: CreateUserDto = {
+      firstName: 'test',
+      lastName: 'test',
+      email: 'test@test.com',
+      location: 'test',
+    };
+    await testApp.getRequest().post('/users').send(createPayload);
+
+    await testApp.getRequest().delete(`/users/${testApp.testUUID}`).expect(HttpStatus.NOT_FOUND);
   });
 });

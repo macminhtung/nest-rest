@@ -131,6 +131,6 @@ export class TaskService extends BaseService<TaskEntity> {
     // Delete the task
     await this.repository.delete(taskId);
 
-    return { deleted: true, message: 'Task deleted sucessfully' };
+    return { deleted: true, message: 'Task deleted successfully' };
   }
 }

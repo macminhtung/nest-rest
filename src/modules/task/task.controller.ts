@@ -66,9 +66,9 @@ export class TaskController {
     return this.taskService.getPaginatedTasks(queryParams);
   }
 
-  // #==============================#
-  // # ==> DELETE PROJECT BY ID <== #
-  // #==============================#
+  // #===========================#
+  // # ==> DELETE TASK BY ID <== #
+  // #===========================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: DeleteRecordResponseDto })
   @Delete(':id')

@@ -18,10 +18,10 @@ export class CreateTaskDto {
   status: ETaskStatus;
 
   @ApiProperty()
-  @IsUUID(7)
+  @IsUUID()
   userId: string;
 
   @ApiProperty()
-  @IsUUID(7)
+  @IsUUID()
   projectId: string;
 }

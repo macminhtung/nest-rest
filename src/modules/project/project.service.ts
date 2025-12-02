@@ -26,8 +26,7 @@ export class ProjectService extends BaseService<ProjectEntity> {
   /**
    * Creates a new project and saves it to the database
    *
-   * @param name - The name of the project
-   * @param description - The project description
+   * @param payload Data to create the project (CreateProjectDto)
    * @returns Promise that resolves to the created Project entity
    */
   async createProject(payload: CreateProjectDto): Promise<ProjectEntity> {
@@ -58,6 +57,7 @@ export class ProjectService extends BaseService<ProjectEntity> {
    * Retrieves a project by its UUID from the database
    *
    * @param projectId - The unique id of the project
+   * @param loadUser - The param to load user relation
    * @returns Promise that resolves to the found Project entity
    * @throws {NotFoundException} - If no project is found with the given UUID
    */
@@ -73,13 +73,13 @@ export class ProjectService extends BaseService<ProjectEntity> {
 
   /**
    * Retrieves a paginated list of users with optional filtering and search.
-   * Supports filtering by userId, and keySearch (name).
+   * Supports filtering by userId, name, and keySearch (description).
    * @param queryParams Pagination and filter parameters
    * @returns Paginated result object
    */
   async getPaginatedProjects(queryParams: GetProjectsPaginatedDto) {
     const paginationData = await this.getPaginatedRecords(queryParams, (qb) => {
-      const { userId, keySearch } = queryParams;
+      const { userId, name, keySearch } = queryParams;
       const alias = this.entityName;
 
       qb.leftJoinAndSelect(`${alias}.users`, 'Us');
@@ -87,10 +87,13 @@ export class ProjectService extends BaseService<ProjectEntity> {
       // Filter based on userId
       if (userId) qb.andWhere(`Us.id = :userId`, { userId });
 
+      // Filter based on name
+      if (name) qb.andWhere(`${alias}.name = :name`, { name });
+
       // Filter the name based on keySearch
       if (keySearch)
-        qb.andWhere(`${alias}.name ILIKE :keySearch`, {
-          keySearch: `%${keySearch}`,
+        qb.andWhere(`${alias}.description ILIKE :keySearch`, {
+          keySearch: `%${keySearch}%`,
         });
     });
 
