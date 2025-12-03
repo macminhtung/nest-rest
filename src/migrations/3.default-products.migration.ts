@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 
 export class DefaultUsersMigration_1711300000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // INSERT ADMIN
     await queryRunner.query(`
-      INSERT INTO "${EEntity.PRODUCT}" (id, image, name, description) VALUES
+      INSERT INTO "${ETableName.PRODUCT}" (id, image, name, description) VALUES
         ('019956b7-52a1-7bd1-b14c-d9021ff86179', 'https://github.com/shadcn.png', 'product 1', 'description 1'),
         ('019956b7-52a1-7386-952d-63699269ba4f', 'https://github.com/shadcn.png', 'product 2', 'description 2'),
         ('019956b7-52a1-791c-8c3a-e93c8f46bc9a', 'https://github.com/shadcn.png', 'product 3', 'description 3'),
@@ -19,6 +19,6 @@ export class DefaultUsersMigration_1711300000000 implements MigrationInterface {
     `);
   }
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DELETE FROM "${EEntity.PRODUCT}"`);
+    await queryRunner.query(`DELETE FROM "${ETableName.PRODUCT}"`);
   }
 }

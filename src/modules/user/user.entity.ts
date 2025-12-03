@@ -1,10 +1,11 @@
-import { Column, PrimaryColumn, Entity, ManyToOne } from 'typeorm';
+import { Column, PrimaryColumn, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 
-@Entity({ name: EEntity.USER })
+@Entity({ name: ETableName.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')
@@ -45,4 +46,7 @@ export class UserEntity extends BaseEntity {
   @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
   role: RoleEntity;
+
+  @OneToMany(() => UserTokenEntity, (e) => e.user)
+  userTokens?: UserTokenEntity[];
 }

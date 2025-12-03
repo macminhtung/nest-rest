@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { ProductEntity } from '@/modules/product/product.entity';
 
 type TProductDocument = Pick<ProductEntity, 'id' | 'name' | 'description'>;
@@ -9,7 +9,7 @@ type TProductDocument = Pick<ProductEntity, 'id' | 'name' | 'description'>;
 export class SearchProductService {
   constructor(private readonly service: ElasticsearchService) {}
 
-  private readonly indexName = EEntity.PRODUCT;
+  private readonly indexName = ETableName.PRODUCT;
 
   // #==========================#
   // # ==> INITIALIZE INDEX <== #

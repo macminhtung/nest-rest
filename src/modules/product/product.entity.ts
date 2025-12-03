@@ -1,9 +1,9 @@
 import { Column, PrimaryColumn, Entity } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { EEntity } from '@/common/enums';
+import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 
-@Entity({ name: EEntity.PRODUCT })
+@Entity({ name: ETableName.PRODUCT })
 export class ProductEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')

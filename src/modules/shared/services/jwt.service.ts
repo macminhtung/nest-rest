@@ -2,13 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { ERROR_MESSAGES } from '@/common/constants';
+import { ETokenType } from '@/common/enums';
 import type { VerifyErrors, SignOptions } from 'jsonwebtoken';
 import type { TEnvConfiguration } from '@/config';
 
-export enum ETokenType {
-  ACCESS_TOKEN = 'ACCESS_TOKEN',
-  REFRESH_TOKEN = 'REFRESH_TOKEN',
-}
 type TDecodeToken<T extends ETokenType> = { type: T; token: string };
 
 type TTokenPayload<T extends ETokenType> = (T extends ETokenType.ACCESS_TOKEN
@@ -16,7 +13,6 @@ type TTokenPayload<T extends ETokenType> = (T extends ETokenType.ACCESS_TOKEN
   : { isRefreshToken: true }) & {
   id: string;
   email: string;
-  passwordTimestamp: string;
 };
 
 type TGenerateToken<T extends ETokenType> = {
@@ -43,7 +39,7 @@ export class JwtService {
 
   generateToken<T extends ETokenType>(payload: TGenerateToken<T>) {
     const { tokenPayload, options } = payload;
-    return jwt.sign(tokenPayload, this.jwtSecretKey, options || { expiresIn: '24h' });
+    return jwt.sign(tokenPayload, this.jwtSecretKey, options || { expiresIn: '10min' });
   }
 
   verifyToken<T extends ETokenType>(payload: TVerifyToken<T>) {

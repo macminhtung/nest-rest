@@ -32,7 +32,7 @@ export class BaseService<E extends ObjectLiteral> {
   @InjectDataSource()
   public readonly dataSource: DataSource;
 
-  public entityName: string;
+  public readonly entityName: string;
 
   // #=====================#
   // # ==> TRANSACTION <== #
@@ -76,7 +76,8 @@ export class BaseService<E extends ObjectLiteral> {
     // Throw error if the record doesn't exists
     if (!existRecord)
       throw new NotFoundException({
-        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.NOT_FOUND}!`,
+        message:
+          errorMessage || `[${this.entityName.replace('Entity', '')}] ${ERROR_MESSAGES.NOT_FOUND}!`,
       });
 
     return existRecord;
@@ -91,7 +92,9 @@ export class BaseService<E extends ObjectLiteral> {
     // Throw error if the record exists
     if (existRecord)
       throw new ConflictException({
-        message: errorMessage || `[${this.entityName}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
+        message:
+          errorMessage ||
+          `[${this.entityName.replace('Entity', '')}] ${ERROR_MESSAGES.ALREADY_EXISTS}!`,
       });
   }
 
