@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Body, ParseUUIDPipe } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
@@ -16,8 +16,8 @@ export class UserController {
   // #=====================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: UserEntity })
-  @Put(':id')
-  updateUser(@Param('id') id: string, @Body() payload: UpdateUserDto) {
+  @Patch(':id')
+  updateUser(@Param('id', ParseUUIDPipe) id: string, @Body() payload: UpdateUserDto) {
     return this.userService.updateUser(id, payload);
   }
 
@@ -27,7 +27,7 @@ export class UserController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(UserEntity)
   @Get(':id')
-  getUser(@Param('id') id: string) {
+  getUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.userService.getUser(id);
   }
 

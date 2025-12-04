@@ -31,9 +31,7 @@ export class ApiValidationPipe extends ValidationPipe {
     super({
       whitelist: true,
       transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
+      transformOptions: { enableImplicitConversion: true },
     });
   }
 
@@ -43,9 +41,7 @@ export class ApiValidationPipe extends ValidationPipe {
     // Clean undefined fields
     if (transformed && typeof transformed === 'object') {
       Object.keys(transformed).forEach((key) => {
-        if (transformed[key] === undefined) {
-          delete transformed[key];
-        }
+        if (transformed[key] === undefined) delete transformed[key];
       });
     }
 

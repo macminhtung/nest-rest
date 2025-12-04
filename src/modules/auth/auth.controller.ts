@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Get, Body, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Put, Patch, Get, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { Public } from '@/decorators';
@@ -86,7 +86,7 @@ export class AuthController {
   // # ==> UPDATE PROFILE <== #
   // #========================#
   @ApiOkResponse({ type: UpdateProfileDto })
-  @Put('/profile')
+  @Patch('/profile')
   updateProfile(
     @Req() req: TRequest,
     @Body() payload: UpdateProfileDto,

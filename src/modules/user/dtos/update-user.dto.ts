@@ -1,20 +1,24 @@
-import { IsString, IsNumber } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsIn, MaxLength } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { DEFAULT_ROLES } from '@/common/constants';
 
 export class UpdateUserDto {
   @ApiPropertyOptional()
   @IsString()
-  avatar: string;
+  @MaxLength(500)
+  avatar?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  firstName: string;
+  @MaxLength(50)
+  firstName?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  lastName: string;
+  @MaxLength(50)
+  lastName?: string;
 
-  @ApiProperty()
-  @IsNumber()
-  roleId: number;
+  @ApiPropertyOptional()
+  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.STAFF.id, DEFAULT_ROLES.USER.id])
+  roleId?: number;
 }

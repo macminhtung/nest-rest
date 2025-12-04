@@ -1,4 +1,14 @@
-import { Controller, Post, Put, Delete, Get, Param, Query, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Put,
+  Delete,
+  Get,
+  Param,
+  Query,
+  Body,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
@@ -33,7 +43,7 @@ export class ProductController {
   @ApiOkResponse({ type: ProductEntity })
   @Put(':id')
   updateProduct(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() payload: CreateProductDto,
   ): Promise<ProductEntity> {
     return this.productService.updateProduct(id, payload);
@@ -45,7 +55,7 @@ export class ProductController {
   @Roles([ERoleName.ADMIN])
   @ApiOkResponse({ type: String })
   @Delete(':id')
-  deleteProduct(@Param('id') id: string): Promise<string> {
+  deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<string> {
     return this.productService.deleteProduct(id);
   }
 

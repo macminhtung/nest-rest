@@ -12,7 +12,7 @@ export class UserEntity extends BaseEntity {
   id: string;
 
   @ApiProperty()
-  @Column({ default: '' })
+  @Column({ default: '', length: 500 })
   avatar: string;
 
   @ApiProperty()
@@ -23,11 +23,11 @@ export class UserEntity extends BaseEntity {
   password: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ length: 100 })
   firstName: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ length: 100 })
   lastName: string;
 
   @Column({ select: false, default: new Date().valueOf().toString() })
