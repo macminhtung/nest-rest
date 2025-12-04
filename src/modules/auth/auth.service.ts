@@ -345,7 +345,7 @@ export class AuthService extends BaseService<UserEntity> {
   // # ==> GET PROFILE <== #
   // #=====================#
   getProfile(req: TRequest) {
-    return { ...req.authUser, password: undefined, passwordTimestamp: undefined };
+    return { ...req.authUser, password: undefined };
   }
 
   // #========================#

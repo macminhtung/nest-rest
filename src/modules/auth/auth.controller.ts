@@ -76,9 +76,9 @@ export class AuthController {
   // #=====================#
   // # ==> GET PROFILE <== #
   // #=====================#
-  @ApiOkResponse({ type: OmitType(UserEntity, ['password', 'passwordTimestamp']) })
+  @ApiOkResponse({ type: OmitType(UserEntity, ['password']) })
   @Get('/profile')
-  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password' | 'passwordTimestamp'> {
+  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password'> {
     return this.authService.getProfile(req);
   }
 

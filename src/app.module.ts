@@ -7,12 +7,12 @@ import { ApiLoggingInterceptor } from '@/interceptors';
 import { AuthGuard } from '@/guards';
 import { ApiExceptionsFilter } from '@/filters';
 import { ApiValidationPipe } from '@/pipes';
+import { typeormConfig } from '@/config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
-import { ProductModule } from '@/modules/product/product.module';
 import { SharedModule } from '@/modules/shared/shared.module';
-import { ElasticModule } from '@/modules/elastic/elastic.module';
-import { typeormConfig } from '@/config';
+// import { ProductModule } from '@/modules/product/product.module';
+// import { ElasticModule } from '@/modules/elastic/elastic.module';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { typeormConfig } from '@/config';
     // #==============================#
     // # ==> ELASTICSEARCH MODULE <== #
     // #==============================#
-    ElasticModule,
+    // ElasticModule,
 
     // #=========================#
     // # ==> TYPE_ORM MODULE <== #
@@ -39,7 +39,7 @@ import { typeormConfig } from '@/config';
     SharedModule,
     UserModule,
     AuthModule,
-    ProductModule,
+    // ProductModule,
   ],
   providers: [
     // #===================================#

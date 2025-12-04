@@ -20,12 +20,12 @@ export const ENV_VALIDATION = Joi.object({
   TYPEORM_MIGRATIONS_RUN: Joi.boolean().required(),
   TYPEORM_DEBUG: Joi.boolean().default(true),
 
-  ELASTIC_NODE: Joi.string().required(),
-  ELASTIC_USER: Joi.string().required(),
-  ELASTIC_PASSWORD: Joi.string().required(),
+  // ELASTIC_NODE: Joi.string().required(),
+  // ELASTIC_USER: Joi.string().required(),
+  // ELASTIC_PASSWORD: Joi.string().required(),
 
-  AWS_REGION: Joi.string().required(),
-  AWS_ACCESS_KEY_ID: Joi.string().required(),
-  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
-  AWS_S3_BUCKET_NAME: Joi.string().required(),
+  // AWS_REGION: Joi.string().required(),
+  // AWS_ACCESS_KEY_ID: Joi.string().required(),
+  // AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  // AWS_S3_BUCKET_NAME: Joi.string().required(),
 });

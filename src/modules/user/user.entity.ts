@@ -30,9 +30,6 @@ export class UserEntity extends BaseEntity {
   @Column({ length: 100 })
   lastName: string;
 
-  @Column({ select: false, default: new Date().valueOf().toString() })
-  passwordTimestamp: string; // ==> Check JWT after password change
-
   @ApiProperty()
   @Column({ default: false })
   isEmailVerified: boolean;
