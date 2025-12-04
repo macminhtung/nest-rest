@@ -1,4 +1,9 @@
-import { BadRequestException, ValidationError, ValidationPipe } from '@nestjs/common';
+import {
+  ArgumentMetadata,
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 
 export class HandleTreeError {
   constructor(validationErrors: ValidationError[]) {
@@ -35,7 +40,7 @@ export class ApiValidationPipe extends ValidationPipe {
     });
   }
 
-  async transform(value: any, metadata: any) {
+  async transform(value: unknown, metadata: ArgumentMetadata) {
     const transformed = await super.transform(value, metadata);
 
     // Clean undefined fields
