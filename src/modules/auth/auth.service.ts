@@ -95,7 +95,7 @@ export class AuthService extends BaseService<UserEntity> {
       path: '/auth/refresh-token',
       secure: isProductionMode,
       httpOnly: true,
-      sameSite: isProductionMode ? 'strict' : 'lax',
+      sameSite: isProductionMode ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
