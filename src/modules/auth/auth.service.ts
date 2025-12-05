@@ -92,10 +92,10 @@ export class AuthService extends BaseService<UserEntity> {
 
     res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
       domain: isProductionMode ? process.env.DOMAIN : undefined,
-      path: '/',
+      path: '/auth/refresh-token',
       secure: isProductionMode,
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: isProductionMode ? 'strict' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }
