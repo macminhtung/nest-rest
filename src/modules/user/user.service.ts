@@ -69,8 +69,13 @@ export class UserService extends BaseService<UserEntity> {
   // # ==> UPDATE USER <== #
   // #=====================#
   async updateUser(id: string, payload: UpdateUserDto) {
-    const user = await this.repository.save({ id, ...payload });
-    return user;
+    // Check the user already exists
+    const existedUser = await this.checkExist({ where: { id } });
+
+    // Update the user
+    await this.repository.update(id, payload);
+
+    return { ...existedUser, ...payload };
   }
 
   // #========================#
