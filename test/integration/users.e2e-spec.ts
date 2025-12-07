@@ -196,7 +196,7 @@ describe('User endpoint', () => {
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post('/${ETableName.USERS}').send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
 
     await testApp
       .getRequest()
@@ -326,7 +326,7 @@ describe('User endpoint', () => {
     await testApp.getRequest().get(`/${ETableName.USERS}/${user.id}`).expect(HttpStatus.NOT_FOUND);
   });
 
-  it('/:userId -> DELETE (Invalid UUID)', async () => {
+  it(`/${ETableName.USERS}/:userId -> DELETE (Invalid UUID)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
