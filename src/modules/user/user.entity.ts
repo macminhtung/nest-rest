@@ -42,7 +42,7 @@ export class UserEntity extends BaseEntity {
   // Relation tables
   @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
-  role: RoleEntity;
+  role?: RoleEntity;
 
   @OneToMany(() => UserTokenEntity, (e) => e.user)
   userTokens?: UserTokenEntity[];

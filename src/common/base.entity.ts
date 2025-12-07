@@ -1,16 +1,16 @@
 import { CreateDateColumn, DeleteDateColumn, UpdateDateColumn } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class BaseEntity {
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamp without time zone' })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @UpdateDateColumn({ type: 'timestamp without time zone', nullable: true })
-  updatedAt: Date;
+  updatedAt?: Date;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @DeleteDateColumn({ type: 'timestamp without time zone', nullable: true })
-  deletedAt: Date;
+  deletedAt?: Date;
 }

@@ -2,7 +2,6 @@ import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { hash, compare } from 'bcrypt';
 import { v7 as uuidv7 } from 'uuid';
 import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
 import { ECookieKey, ETokenType } from '@/common/enums';
@@ -68,22 +67,6 @@ export class AuthService extends BaseService<UserEntity> {
     return existedUser;
   }
 
-  // #================================#
-  // # ==> GENERATE HASH PASSWORD <== #
-  // #================================#
-  async generateHashPassword(password: string): Promise<string> {
-    const hashPassword = await hash(password, 10);
-    return hashPassword;
-  }
-
-  // #===============================#
-  // # ==> COMPARE HASH PASSWORD <== #
-  // #===============================#
-  async compareHashPassword(payload: { password: string; hashPassword: string }): Promise<boolean> {
-    const { password, hashPassword } = payload;
-    return await compare(password, hashPassword);
-  }
-
   // #=======================================#
   // # ==> SET REFRESH_TOKEN INTO COOKIE <== #
   // #=======================================#
@@ -110,7 +93,7 @@ export class AuthService extends BaseService<UserEntity> {
     await this.userService.checkConflict({ where: { email } });
 
     // Hash the password
-    const hashPassword = await this.generateHashPassword(password);
+    const hashPassword = await this.userService.generateHashPassword(password);
 
     // Create a new user
     const newUser = await this.repository.save({
@@ -139,7 +122,7 @@ export class AuthService extends BaseService<UserEntity> {
     const { id } = existUser;
 
     // Check password is valid
-    const isValidPassword = await this.compareHashPassword({
+    const isValidPassword = await this.userService.compareHashPassword({
       password,
       hashPassword: existUser.password,
     });
@@ -280,14 +263,14 @@ export class AuthService extends BaseService<UserEntity> {
     });
 
     // Compare hashPassword with oldPassword
-    const isCorrectPassword = await this.compareHashPassword({
+    const isCorrectPassword = await this.userService.compareHashPassword({
       password: oldPassword,
       hashPassword: password,
     });
     if (!isCorrectPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
-    const isReusedPassword = await this.compareHashPassword({
+    const isReusedPassword = await this.userService.compareHashPassword({
       password: newPassword,
       hashPassword: password,
     });
@@ -295,7 +278,7 @@ export class AuthService extends BaseService<UserEntity> {
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_REUSED });
 
     // Generate newHashPassword
-    const newHashPassword = await this.generateHashPassword(newPassword);
+    const newHashPassword = await this.userService.generateHashPassword(newPassword);
 
     // Generate accessToken
     const commonTokenPayload = { id: authId, email };

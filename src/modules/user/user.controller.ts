@@ -1,15 +1,37 @@
-import { Controller, Get, Patch, Param, Query, Body, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Param,
+  Query,
+  Body,
+  ParseUUIDPipe,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
-import { ApiOkResponsePaginated } from '@/common/dtos';
+import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
+import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
+import type { TRequest } from '@/common/types';
 
 @Controller(ETableName.USER)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  // #=====================#
+  // # ==> CREATE USER <== #
+  // #=====================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponse({ type: UserEntity })
+  @Post()
+  createUser(@Body() payload: CreateUserDto) {
+    return this.userService.createUser(payload);
+  }
 
   // #=====================#
   // # ==> UPDATE USER <== #
@@ -21,14 +43,14 @@ export class UserController {
     return this.userService.updateUser(id, payload);
   }
 
-  // #==================#
-  // # ==> GET USER <== #
-  // #==================#
+  // #========================#
+  // # ==> GET USER BY ID <== #
+  // #========================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(UserEntity)
   @Get(':id')
-  getUser(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.getUser(id);
+  getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.userService.getUserById(id);
   }
 
   // #=============================#
@@ -39,5 +61,18 @@ export class UserController {
   @Get('/paginated')
   getPaginatedUsers(@Query() queryParams: GetUsersPaginatedDto) {
     return this.userService.getPaginatedUsers(queryParams);
+  }
+
+  // #===========================#
+  // # ==> DELETE USER BY ID <== #
+  // #===========================#
+  @Roles([ERoleName.ADMIN])
+  @ApiOkResponse({ type: DeleteRecordResponseDto })
+  @Delete(':id')
+  deleteUserById(
+    @Req() req: TRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<DeleteRecordResponseDto> {
+    return this.userService.deleteUserById(req.authUser, id);
   }
 }
