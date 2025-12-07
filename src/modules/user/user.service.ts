@@ -91,7 +91,7 @@ export class UserService extends BaseService<UserEntity> {
   // #=============================#
   async getPaginatedUsers(queryParams: GetUsersPaginatedDto) {
     const paginationData = await this.getPaginatedRecords(queryParams, (qb) => {
-      const { keySearch, roleIds } = queryParams;
+      const { keySearch, roleIds, email } = queryParams;
       const alias = this.entityName;
 
       qb.leftJoinAndSelect(`${alias}.role`, 'role');
@@ -99,10 +99,13 @@ export class UserService extends BaseService<UserEntity> {
       // Filter based on roleIds
       if (roleIds?.length) qb.andWhere(`${alias}.roleId IN (:...roleIds)`, { roleIds });
 
+      // Filter based on email
+      if (email) qb.andWhere(`${alias}.email = :email`, { email });
+
       // Query based on keySearch
       if (keySearch)
         qb.andWhere(`(${alias}.firstName ILIKE :keySearch OR ${alias}.lastName ILIKE :keySearch)`, {
-          keySearch: `%${keySearch}%`,
+          keySearch: `%${keySearch}`,
         });
     });
 

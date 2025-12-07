@@ -22,7 +22,7 @@ import {
   PaginatedResponseDto,
 } from '@/common/dtos';
 
-@Controller(ETableName.PRODUCT)
+@Controller(ETableName.PRODUCTS)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

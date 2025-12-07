@@ -1,6 +1,6 @@
 export enum ETableName {
-  USER = 'user',
-  ROLE = 'role',
-  PRODUCT = 'product',
-  USER_TOKEN = 'user_token',
+  USERS = 'users',
+  ROLES = 'roles',
+  PRODUCTS = 'products',
+  USERS_TOKENS = 'users_tokens',
 }

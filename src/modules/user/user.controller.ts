@@ -19,7 +19,7 @@ import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 import type { TRequest } from '@/common/types';
 
-@Controller(ETableName.USER)
+@Controller(ETableName.USERS)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -58,7 +58,7 @@ export class UserController {
   // #=============================#
   @Roles([ERoleName.ADMIN])
   @ApiOkResponsePaginated(UserEntity)
-  @Get('/paginated')
+  @Get()
   getPaginatedUsers(@Query() queryParams: GetUsersPaginatedDto) {
     return this.userService.getPaginatedUsers(queryParams);
   }
