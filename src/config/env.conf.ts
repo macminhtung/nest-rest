@@ -11,6 +11,13 @@ export const loadENVsFunc = () => ({
     password: process.env.TYPEORM_PASSWORD!,
     database: process.env.TYPEORM_DATABASE!,
   },
+  redis: {
+    host: process.env.REDIS_HOST!,
+    port: +process.env.REDIS_PORT!,
+    username: process.env.REDIS_USERNAME!,
+    password: process.env.REDIS_PASSWORD!,
+    ttl: +process.env.REDIS_TTL!,
+  },
   elastic: {
     node: process.env.ELASTIC_NODE!,
     username: process.env.ELASTIC_USER!,

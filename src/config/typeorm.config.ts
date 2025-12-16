@@ -16,22 +16,23 @@ const {
   TYPEORM_ENTITIES,
   TYPEORM_MIGRATIONS,
   TYPEORM_MIGRATIONS_RUN,
+  TYPEORM_DEBUG,
 } = process.env;
 
 export const typeormConfig: DataSourceOptions & { debug: boolean } = {
+  namingStrategy: new SnakeNamingStrategy(),
   type: TYPEORM_TYPE as 'postgres',
   host: TYPEORM_HOST,
   port: Number(TYPEORM_PORT),
   username: TYPEORM_USERNAME,
   password: TYPEORM_PASSWORD,
   database: TYPEORM_DATABASE,
-  synchronize: TYPEORM_SYNCHRONIZE === 'true', // Warning: Don't enable for production environment
-  dropSchema: TYPEORM_DROP_SCHEMA === 'true', // Should only use for test environment
   entities: [TYPEORM_ENTITIES!],
   migrations: [TYPEORM_MIGRATIONS!],
-  namingStrategy: new SnakeNamingStrategy(),
+  synchronize: TYPEORM_SYNCHRONIZE === 'true', // Warning: Don't enable for production environment
+  dropSchema: TYPEORM_DROP_SCHEMA === 'true', // Should only use for test environment
   migrationsRun: TYPEORM_MIGRATIONS_RUN === 'true',
-  debug: true,
+  debug: TYPEORM_DEBUG === 'true',
 };
 
 export default new DataSource(typeormConfig);
