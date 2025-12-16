@@ -6,6 +6,9 @@ import { ETokenType } from '@/common/enums';
 import type { VerifyErrors, SignOptions } from 'jsonwebtoken';
 import type { TEnvConfiguration } from '@/config';
 
+export const ACCESS_TOKEN_EXPIRES_IN = 10 * 60 * 1000; // ==> 10 minutes
+export const REFRESH_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60 * 1000; // ==> 30 days
+
 type TDecodeToken<T extends ETokenType> = { type: T; token: string };
 
 type TTokenPayload<T extends ETokenType> = (T extends ETokenType.ACCESS_TOKEN
@@ -39,7 +42,11 @@ export class JwtService {
 
   generateToken<T extends ETokenType>(payload: TGenerateToken<T>) {
     const { tokenPayload, options } = payload;
-    return jwt.sign(tokenPayload, this.jwtSecretKey, options || { expiresIn: '10min' });
+    return jwt.sign(
+      tokenPayload,
+      this.jwtSecretKey,
+      options || { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+    );
   }
 
   verifyToken<T extends ETokenType>(payload: TVerifyToken<T>) {

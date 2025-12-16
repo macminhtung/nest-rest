@@ -11,8 +11,8 @@ import { typeormConfig } from '@/config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/modules/shared/shared.module';
-import { ProductModule } from '@/modules/product/product.module';
-import { ElasticModule } from '@/modules/elastic/elastic.module';
+// import { ProductModule } from '@/modules/product/product.module';
+// import { ElasticModule } from '@/modules/elastic/elastic.module';
 import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
 
 @Module({
@@ -30,7 +30,7 @@ import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
     // #==============================#
     // # ==> ELASTICSEARCH MODULE <== #
     // #==============================#
-    ElasticModule,
+    // ElasticModule,
 
     // #============================#
     // # ==> REDIS CACHE MODULE <== #
@@ -45,7 +45,7 @@ import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
     SharedModule,
     UserModule,
     AuthModule,
-    ProductModule,
+    // ProductModule,
   ],
   providers: [
     // #===================================#

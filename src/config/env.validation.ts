@@ -26,9 +26,9 @@ export const ENV_VALIDATION = Joi.object({
   REDIS_PASSWORD: Joi.string().optional().allow('', null),
   REDIS_TTL: Joi.number().default(600000), // ==> 10 minutes
 
-  ELASTIC_NODE: Joi.string().required(),
-  ELASTIC_USER: Joi.string().required(),
-  ELASTIC_PASSWORD: Joi.string().required(),
+  // ELASTIC_NODE: Joi.string().required(),
+  // ELASTIC_USER: Joi.string().optional().allow('', null),
+  // ELASTIC_PASSWORD: Joi.string().optional().allow('', null),
 
   AWS_REGION: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),

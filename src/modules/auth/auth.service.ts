@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
-import { ECookieKey, ETokenType } from '@/common/enums';
+import { ECookieKey, ETokenType, ETableName } from '@/common/enums';
 import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
@@ -15,7 +15,13 @@ import {
 } from '@/modules/user/user-token/user-token.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
-import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
+import {
+  JwtService,
+  TVerifyToken,
+  AwsS3Service,
+  ACCESS_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_EXPIRES_IN,
+} from '@/modules/shared/services';
 
 import {
   SignUpDto,
@@ -56,6 +62,11 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate hashToken
     const hashToken = this.userTokenService.generateHashToken(token);
 
+    // Check the cache data already exists
+    const cacheKey = `${ETableName.USERS}/${decodeToken.id}/${hashToken}`;
+    const cacheUser = await this.redisCacheService.get<UserEntity>(cacheKey);
+    if (cacheUser) return cacheUser;
+
     // Check user already exists
     const existedUser = await this.userService.checkExist(
       {
@@ -64,6 +75,13 @@ export class AuthService extends BaseService<UserEntity> {
         relations: { role: true },
       },
       errorMessage,
+    );
+
+    // Set the new cache-data for existedUser
+    this.redisCacheService.set<UserEntity>(
+      cacheKey,
+      existedUser,
+      type === ETokenType.ACCESS_TOKEN ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN,
     );
 
     return existedUser;
@@ -136,14 +154,14 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: '10min' },
+      options: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
     });
 
     // Generate new refreshToken
     const newRefreshToken = this.jwtService.generateToken({
       type: ETokenType.REFRESH_TOKEN,
       tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
-      options: { expiresIn: '30 days' },
+      options: { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
     });
 
     // Store user tokens
@@ -287,14 +305,14 @@ export class AuthService extends BaseService<UserEntity> {
     const newAccessToken = this.jwtService.generateToken({
       type: ETokenType.ACCESS_TOKEN,
       tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: '10min' },
+      options: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
     });
 
     // Generate refreshToken
     const newRefreshToken = this.jwtService.generateToken({
       type: ETokenType.REFRESH_TOKEN,
       tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
-      options: { expiresIn: '30 days' },
+      options: { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
     });
 
     // Start transaction

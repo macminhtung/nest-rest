@@ -24,12 +24,7 @@ import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
           database: 0,
         };
 
-        return {
-          stores: [
-            new KeyvRedis(redisOption, { throwOnConnectError: true, connectionTimeout: 10000 }),
-          ],
-          ttl,
-        };
+        return { stores: [new KeyvRedis(redisOption)], ttl };
       },
     }),
   ],

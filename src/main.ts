@@ -15,8 +15,12 @@ async function bootstrap() {
   // #============================#
   // # ==> APIs DOCUMENTATION <== #
   // #============================#
-  const config = new DocumentBuilder().setTitle('APIs Documentation').addBearerAuth().build();
-  SwaggerModule.setup('documentation', app, () => SwaggerModule.createDocument(app, config));
+  const config = new DocumentBuilder()
+    .setTitle('APIs Documentation')
+    .addApiKey({ type: 'apiKey', name: 'authorization', in: 'header' }, 'authorization')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('documentation', app, document);
 
   // #===========================#
   // # ==> START APPLICATION <== #
