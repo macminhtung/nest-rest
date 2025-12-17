@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import crypto from 'crypto';
 import { v7 as uuidv7 } from 'uuid';
-import { ETokenType } from '@/common/enums';
+import { ETableName, ETokenType } from '@/common/enums';
 import { BaseService } from '@/common/base.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
+import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
 
 export enum EProcessUserTokenMode {
   RESET_AND_CREATE_NEW_TOKEN_PAIR = 'RESET_AND_CREATE_NEW_TOKEN_PAIR',
@@ -20,14 +21,19 @@ type TStoreNewTokenPair = (
         | EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR
         | EProcessUserTokenMode.CREATE_NEW_TOKEN_PAIR;
       newRefreshToken: string;
+      newAccessToken: string;
     }
   | {
-      mode: EProcessUserTokenMode.DELETE_TOKEN_PAIR | EProcessUserTokenMode.REFRESH_ACCESS_TOKEN;
+      mode: EProcessUserTokenMode.DELETE_TOKEN_PAIR;
       refreshTokenId: string;
+    }
+  | {
+      mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN;
+      refreshTokenId: string;
+      newAccessToken: string;
     }
 ) & {
   userId: string;
-  newAccessToken: string;
   txRepository?: Repository<UserTokenEntity>; // Use for run with transaction
 };
 
@@ -36,6 +42,8 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
   constructor(
     @InjectRepository(UserTokenEntity)
     public readonly repository: Repository<UserTokenEntity>,
+
+    private redisCacheService: RedisCacheService,
   ) {
     super(repository);
   }
@@ -52,11 +60,15 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
   // # ==> PROCESS USER TOKEN <== #
   // #============================#
   async processUserToken(payload: TStoreNewTokenPair) {
-    const { mode, txRepository, userId, newAccessToken } = payload;
+    const { mode, txRepository, userId } = payload;
 
     // Identify the repository
     const repository = txRepository || this.repository;
 
+    // Initialize cache keys for deletion
+    const delCacheKeys: string[] = [];
+
+    // CASE: ==> DELETE_TOKEN_PAIR | REFRESH_ACCESS_TOKEN <==
     if (
       mode === EProcessUserTokenMode.DELETE_TOKEN_PAIR ||
       mode === EProcessUserTokenMode.REFRESH_ACCESS_TOKEN
@@ -65,13 +77,13 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
 
       // Delete [OLD] accessToken
       if (mode === EProcessUserTokenMode.REFRESH_ACCESS_TOKEN) {
-        await repository.delete(refreshTokenId);
+        await repository.delete({ refreshTokenId });
 
         // Create [NEW] accessToken
         await repository.save({
           id: uuidv7(),
           type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.generateHashToken(newAccessToken),
+          hashToken: this.generateHashToken(payload.newAccessToken),
           refreshTokenId,
           userId,
         });
@@ -79,18 +91,32 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
 
       // Delete token pair (refresh & access token)
       else {
-        await repository.delete([{ id: refreshTokenId }, { refreshTokenId }]);
+        const tokens = await this.repository.findBy([{ id: refreshTokenId }, { refreshTokenId }]);
+        await repository.delete(tokens.map((i) => i.id));
+
+        // Add delete cache keys
+        tokens.forEach(({ userId, hashToken }) =>
+          delCacheKeys.push(`${ETableName.USERS}/${userId}/${hashToken}`),
+        );
       }
     }
 
-    // Create [NEW] refreshToken
+    // CASE: ==> RESET_AND_CREATE_NEW_TOKEN_PAIR | CREATE_NEW_TOKEN_PAIR <==
     else if (
       mode === EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR ||
       mode === EProcessUserTokenMode.CREATE_NEW_TOKEN_PAIR
     ) {
+      const { newRefreshToken, newAccessToken } = payload;
+
       // Clear all tokens belong to the userId
       if (mode === EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR) {
-        await repository.delete({ userId });
+        const allTokens = await this.repository.findBy({ userId });
+        await repository.delete(allTokens.map((i) => i.id));
+
+        // Add delete cache keys
+        allTokens.forEach(({ userId, hashToken }) =>
+          delCacheKeys.push(`${ETableName.USERS}/${userId}/${hashToken}`),
+        );
       }
 
       // Create [NEW] refreshToken
@@ -98,7 +124,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       await repository.save({
         id: refreshTokenId,
         type: ETokenType.REFRESH_TOKEN,
-        hashToken: this.generateHashToken(payload.newRefreshToken),
+        hashToken: this.generateHashToken(newRefreshToken),
         userId,
       });
 
@@ -111,5 +137,9 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
         userId,
       });
     }
+
+    // Delete cache keys
+    if (delCacheKeys.length)
+      await Promise.all(delCacheKeys.map((key) => this.redisCacheService.delete(key)));
   }
 }

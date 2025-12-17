@@ -22,7 +22,6 @@ import {
   ACCESS_TOKEN_EXPIRES_IN,
   REFRESH_TOKEN_EXPIRES_IN,
 } from '@/modules/shared/services';
-
 import {
   SignUpDto,
   SignInDto,
@@ -80,7 +79,7 @@ export class AuthService extends BaseService<UserEntity> {
     );
 
     // Set the new cache data to redis
-    this.redisCacheService.set<UserEntity>(
+    await this.redisCacheService.set<UserEntity>(
       cacheKey,
       existedUser,
       type === ETokenType.ACCESS_TOKEN ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN,
@@ -192,11 +191,12 @@ export class AuthService extends BaseService<UserEntity> {
       },
     });
 
-    // Delete refreshToken and accessToken
-    await this.userTokenService.repository.delete([
-      { id: refreshTokenId }, // ==> Delete refreshToken
-      { refreshTokenId, userId: authId, type: ETokenType.ACCESS_TOKEN }, // ==> Delete accessToken
-    ]);
+    //  Process user tokens
+    await this.userTokenService.processUserToken({
+      mode: EProcessUserTokenMode.DELETE_TOKEN_PAIR,
+      userId: authId,
+      refreshTokenId,
+    });
 
     // Clear refreshToken into cookie
     this.setRefreshTokenIntoCookie(res, '');
@@ -275,13 +275,6 @@ export class AuthService extends BaseService<UserEntity> {
   async updatePassword(req: TRequest, res: Response, payload: UpdatePasswordDto) {
     const { id: authId, email, password } = req.authUser;
     const { oldPassword, newPassword } = payload;
-
-    // Check refreshToken valid
-    const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
-    await this.checkToken({
-      type: ETokenType.REFRESH_TOKEN,
-      token: refreshToken,
-    });
 
     // Compare hashPassword with oldPassword
     const isCorrectPassword = await this.userService.compareHashPassword({
