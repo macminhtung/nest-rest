@@ -4,6 +4,7 @@
 - TypeORM + PostgreSQL
 - RestAPI + Swagger
 - Elastic Search
+- Redis cache
 
 ## Getting Started
 
