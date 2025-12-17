@@ -11,7 +11,11 @@ export class ElasticHealthService implements OnModuleInit {
   async onModuleInit() {
     await this.service
       .ping()
-      .then(() => this.logger.log('✅ Available', ElasticsearchService.name))
-      .catch(() => this.logger.error('❌ NOT available', ElasticsearchService.name));
+      .then(() =>
+        this.logger.log('✅ Elasticsearch connection verified', ElasticsearchService.name),
+      )
+      .catch(() =>
+        this.logger.error('❌ Elasticsearch connection failed', ElasticsearchService.name),
+      );
   }
 }
