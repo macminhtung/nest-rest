@@ -10,7 +10,7 @@ import {
   Delete,
   Req,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
 import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
@@ -19,6 +19,7 @@ import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 import type { TRequest } from '@/common/types';
 
+@ApiBearerAuth()
 @Controller(ETableName.USERS)
 export class UserController {
   constructor(private readonly userService: UserService) {}

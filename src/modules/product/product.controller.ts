@@ -9,7 +9,7 @@ import {
   Body,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { ETableName, ERoleName } from '@/common/enums';
 import { Roles } from '@/decorators';
 import { Public } from '@/decorators';
@@ -22,6 +22,7 @@ import {
   PaginatedResponseDto,
 } from '@/common/dtos';
 
+@ApiBearerAuth()
 @Controller(ETableName.PRODUCTS)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}

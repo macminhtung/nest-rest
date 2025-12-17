@@ -1,6 +1,6 @@
 import { Controller, Post, Put, Patch, Get, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiOkResponse, OmitType } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { Public } from '@/decorators';
 import { AuthService } from '@/modules/auth/auth.service';
 import { UserEntity } from '@/modules/user/user.entity';
@@ -15,6 +15,7 @@ import {
   GeneratePreSignedUrlDto,
 } from '@/modules/auth/dtos';
 
+@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
