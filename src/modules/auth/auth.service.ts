@@ -62,9 +62,11 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate hashToken
     const hashToken = this.userTokenService.generateHashToken(token);
 
-    // Check the cache data already exists
+    // Get cache data from redis
     const cacheKey = `${ETableName.USERS}/${decodeToken.id}/${hashToken}`;
     const cacheUser = await this.redisCacheService.get<UserEntity>(cacheKey);
+
+    // CASE: Cache data already exists ==> Return cache data
     if (cacheUser) return cacheUser;
 
     // Check user already exists
@@ -77,7 +79,7 @@ export class AuthService extends BaseService<UserEntity> {
       errorMessage,
     );
 
-    // Set the new cache-data for existedUser
+    // Set the new cache data to redis
     this.redisCacheService.set<UserEntity>(
       cacheKey,
       existedUser,
@@ -152,16 +154,12 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate new accessToken
     const commonTokenPayload = { id, email };
     const newAccessToken = this.jwtService.generateToken({
-      type: ETokenType.ACCESS_TOKEN,
-      tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+      tokenPayload: { ...commonTokenPayload, type: ETokenType.ACCESS_TOKEN },
     });
 
     // Generate new refreshToken
     const newRefreshToken = this.jwtService.generateToken({
-      type: ETokenType.REFRESH_TOKEN,
-      tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
-      options: { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
+      tokenPayload: { ...commonTokenPayload, type: ETokenType.REFRESH_TOKEN },
     });
 
     // Store user tokens
@@ -252,9 +250,7 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Generate new accessToken
     const newAccessToken = this.jwtService.generateToken({
-      type: ETokenType.ACCESS_TOKEN,
-      tokenPayload: { id, email, isAccessToken: true },
-      options: { expiresIn: '10min' },
+      tokenPayload: { id, email, type: ETokenType.ACCESS_TOKEN },
     });
 
     // Store new accessToken
@@ -264,6 +260,11 @@ export class AuthService extends BaseService<UserEntity> {
       refreshTokenId,
       newAccessToken,
     });
+
+    // Set the new cache data to redis
+    const hashNewAccessToken = this.userTokenService.generateHashToken(newAccessToken);
+    const cacheKey = `${ETableName.USERS}/${id}/${hashNewAccessToken}`;
+    this.redisCacheService.set<UserEntity>(cacheKey, req.authUser, ACCESS_TOKEN_EXPIRES_IN);
 
     return { accessToken: newAccessToken };
   }
@@ -303,16 +304,12 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate accessToken
     const commonTokenPayload = { id: authId, email };
     const newAccessToken = this.jwtService.generateToken({
-      type: ETokenType.ACCESS_TOKEN,
-      tokenPayload: { ...commonTokenPayload, isAccessToken: true },
-      options: { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
+      tokenPayload: { ...commonTokenPayload, type: ETokenType.ACCESS_TOKEN },
     });
 
     // Generate refreshToken
     const newRefreshToken = this.jwtService.generateToken({
-      type: ETokenType.REFRESH_TOKEN,
-      tokenPayload: { ...commonTokenPayload, isRefreshToken: true },
-      options: { expiresIn: REFRESH_TOKEN_EXPIRES_IN },
+      tokenPayload: { ...commonTokenPayload, type: ETokenType.REFRESH_TOKEN },
     });
 
     // Start transaction
