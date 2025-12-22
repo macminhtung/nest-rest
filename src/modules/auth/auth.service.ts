@@ -72,9 +72,8 @@ export class AuthService extends BaseService<UserEntity> {
     // Check user already exists
     const existedUser = await this.userService.checkExist(
       {
-        select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId', 'role'],
+        select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
         where: { id: decodeToken.id, userTokens: { type, hashToken } },
-        relations: { role: true },
       },
       errorMessage,
     );

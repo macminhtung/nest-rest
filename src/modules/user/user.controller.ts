@@ -11,7 +11,8 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { ETableName, ERoleName } from '@/common/enums';
+import { ETableName } from '@/common/enums';
+import { DEFAULT_ROLES } from '@/common/constants';
 import { Roles } from '@/decorators';
 import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
@@ -27,7 +28,7 @@ export class UserController {
   // #=====================#
   // # ==> CREATE USER <== #
   // #=====================#
-  @Roles([ERoleName.ADMIN])
+  @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponse({ type: UserEntity })
   @Post()
   createUser(@Body() payload: CreateUserDto) {
@@ -37,7 +38,7 @@ export class UserController {
   // #=====================#
   // # ==> UPDATE USER <== #
   // #=====================#
-  @Roles([ERoleName.ADMIN])
+  @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponse({ type: UserEntity })
   @Patch(':id')
   updateUser(@Param('id', ParseUUIDPipe) id: string, @Body() payload: UpdateUserDto) {
@@ -47,7 +48,7 @@ export class UserController {
   // #========================#
   // # ==> GET USER BY ID <== #
   // #========================#
-  @Roles([ERoleName.ADMIN])
+  @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponsePaginated(UserEntity)
   @Get(':id')
   getUserById(@Param('id', ParseUUIDPipe) id: string) {
@@ -57,7 +58,7 @@ export class UserController {
   // #=============================#
   // # ==> GET PAGINATED USERS <== #
   // #=============================#
-  @Roles([ERoleName.ADMIN])
+  @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponsePaginated(UserEntity)
   @Get()
   getPaginatedUsers(@Query() queryParams: GetUsersPaginatedDto) {
@@ -67,7 +68,7 @@ export class UserController {
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
-  @Roles([ERoleName.ADMIN])
+  @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponse({ type: DeleteRecordResponseDto })
   @Delete(':id')
   deleteUserById(
