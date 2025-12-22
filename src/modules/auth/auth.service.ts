@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { ERROR_MESSAGES, DEFAULT_ROLES } from '@/common/constants';
-import { ECookieKey, ETokenType, ETableName } from '@/common/enums';
+import { ECookieKey, ETokenType } from '@/common/enums';
 import type { TRequest } from '@/common/types';
 import { BaseService } from '@/common/base.service';
 import { UserService } from '@/modules/user/user.service';
@@ -15,12 +15,7 @@ import {
 } from '@/modules/user/user-token/user-token.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
-import {
-  JwtService,
-  TVerifyToken,
-  AwsS3Service,
-  ACCESS_TOKEN_EXPIRES_IN,
-} from '@/modules/shared/services';
+import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 import {
   SignUpDto,
   SignInDto,
@@ -132,16 +127,16 @@ export class AuthService extends BaseService<UserEntity> {
     const { email, password } = payload;
 
     // Check email already exists
-    const existUser = await this.userService.checkExist({
+    const existedUser = await this.userService.checkExist({
       where: { email },
-      select: ['id', 'password'],
+      select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
     });
-    const { id } = existUser;
+    const { id } = existedUser;
 
     // Check password is valid
     const isValidPassword = await this.userService.compareHashPassword({
       password,
-      hashPassword: existUser.password,
+      hashPassword: existedUser.password,
     });
     if (!isValidPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
@@ -160,7 +155,7 @@ export class AuthService extends BaseService<UserEntity> {
     // Store user tokens
     await this.userTokenService.processUserToken({
       mode: EProcessUserTokenMode.CREATE_NEW_TOKEN_PAIR,
-      userId: id,
+      user: existedUser,
       newAccessToken,
       newRefreshToken,
     });
@@ -207,60 +202,53 @@ export class AuthService extends BaseService<UserEntity> {
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     const { accessToken } = payload;
 
-    // Check refreshToken valid
-    const { id, email } = await this.checkToken({
+    // [JWT] Verify refreshToken
+    const decodeToken = this.jwtService.verifyToken({
       type: ETokenType.REFRESH_TOKEN,
       token: refreshToken,
-      errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
     });
+    const { id: userId, email } = decodeToken;
 
-    // Check the refreshToken already exist
-    const { id: refreshTokenId } = await this.userTokenService.checkExist({
-      where: {
-        userId: id,
-        type: ETokenType.REFRESH_TOKEN,
-        hashToken: this.userTokenService.generateHashToken(refreshToken),
-      },
-    });
-
-    // Check the accessToken already exist
-    await this.userTokenService.checkExist(
-      {
-        where: {
-          userId: id,
-          type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.userTokenService.generateHashToken(accessToken),
-          refreshTokenId,
-        },
-      },
-      ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
-    );
-
-    // Verify accessToken has expired
+    // [JWT] Verify accessToken has expired
     try {
-      await this.checkToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken });
+      this.jwtService.verifyToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken });
     } catch (error) {
       if (error.message !== 'jwt expired')
         throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
     }
 
+    // [DATABASE] Check the refreshToken already exists
+    const hashRefreshToken = this.userTokenService.generateHashToken(refreshToken);
+    const { id: refreshTokenId } = await this.userTokenService.checkExist(
+      { where: { userId, type: ETokenType.REFRESH_TOKEN, hashToken: hashRefreshToken } },
+      ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
+    );
+
+    // [DATABASE] Check the accessToken already exists
+    await this.userTokenService.checkExist(
+      {
+        where: {
+          userId,
+          type: ETokenType.ACCESS_TOKEN,
+          hashToken: this.userTokenService.generateHashToken(accessToken),
+          refreshTokenId,
+        },
+      },
+      ERROR_MESSAGES.ACCESS_TOKEN_INVALID,
+    );
+
     // Generate new accessToken
     const newAccessToken = this.jwtService.generateToken({
-      tokenPayload: { id, email, type: ETokenType.ACCESS_TOKEN },
+      tokenPayload: { id: userId, email, type: ETokenType.ACCESS_TOKEN },
     });
 
     // Store new accessToken
     await this.userTokenService.processUserToken({
       mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
-      userId: id,
+      userId,
       refreshTokenId,
       newAccessToken,
     });
-
-    // Set the new cache data to redis
-    const hashNewAccessToken = this.userTokenService.generateHashToken(newAccessToken);
-    const cacheKey = `${ETableName.USERS}/${id}/${hashNewAccessToken}`;
-    this.redisCacheService.set<UserEntity>(cacheKey, req.authUser, ACCESS_TOKEN_EXPIRES_IN);
 
     return { accessToken: newAccessToken };
   }
@@ -317,7 +305,7 @@ export class AuthService extends BaseService<UserEntity> {
         await this.userTokenService.processUserToken({
           mode: EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR,
           txRepository: queryRunner.manager.getRepository(UserTokenEntity),
-          userId: authId,
+          user: req.authUser,
           newRefreshToken,
           newAccessToken,
         });

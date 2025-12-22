@@ -101,16 +101,12 @@ export class RedisCacheService implements OnModuleInit {
   // #===========================#
   // # ==> DELETE AUTH CACHE <== #
   // #===========================#
-  async deleteAuthCache(payload: {
-    userId: string;
-    hashTokens: string[];
-    isDeleteUserCache?: boolean;
-  }): Promise<void> {
-    const { userId, hashTokens, isDeleteUserCache } = payload;
-    const cacheUserKey = `${ETableName.USERS}/${userId}`;
-    if (isDeleteUserCache) await this.delete(cacheUserKey);
+  async deleteAuthCache(payload: { userId: string; hashTokens: string[] }): Promise<void> {
+    const { userId, hashTokens } = payload;
 
     // Delete auth cache keys
-    await Promise.all(hashTokens.map((hashToken) => this.delete(`${cacheUserKey}/${hashToken}`)));
+    await Promise.all(
+      hashTokens.map((hashToken) => this.delete(`${ETableName.USERS}/${userId}/${hashToken}`)),
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { Column, PrimaryColumn, Entity, ManyToOne, Index } from 'typeorm';
+import { Column, PrimaryColumn, Entity, ManyToOne, Index, JoinColumn } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETableName, ETokenType } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
@@ -31,5 +31,6 @@ export class UserTokenEntity extends BaseEntity {
   // ==> [RELATION] TABLES <==
   @ApiPropertyOptional()
   @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 }
