@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import crypto from 'crypto';
 import { v7 as uuidv7 } from 'uuid';
-import { ETokenType, ETableName } from '@/common/enums';
+import { ETokenType } from '@/common/enums';
 import { BaseService } from '@/common/base.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
-import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
+import { UserTokenCacheService } from '@/modules/user/user-token/user-token-cache.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 
@@ -35,6 +35,7 @@ type TStoreNewTokenPair = (
       mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN;
       refreshTokenId: string;
       newAccessToken: string;
+      oldHashAccessToken: string;
       userId: string;
     }
 ) & {
@@ -48,7 +49,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
     public readonly repository: Repository<UserTokenEntity>,
 
     private userService: UserService,
-    private redisCacheService: RedisCacheService,
+    private authCacheService: UserTokenCacheService,
   ) {
     super(repository);
   }
@@ -70,54 +71,53 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
     // Identify the repository
     const repository = txRepository || this.repository;
 
-    // CASE: ==> DELETE_TOKEN_PAIR | REFRESH_ACCESS_TOKEN <==
-    if (
-      mode === EProcessUserTokenMode.DELETE_TOKEN_PAIR ||
-      mode === EProcessUserTokenMode.REFRESH_ACCESS_TOKEN
-    ) {
+    // CASE: REFRESH_ACCESS_TOKEN ==> Delete [OLD] accessToken + Set new accessToken cache
+    if (mode === EProcessUserTokenMode.REFRESH_ACCESS_TOKEN) {
+      const { newAccessToken, refreshTokenId, userId, oldHashAccessToken } = payload;
+
+      // Delete [OLD] accessToken
+      await repository.delete({ refreshTokenId });
+
+      // Create [NEW] accessToken
+      await repository.save({
+        id: uuidv7(),
+        type: ETokenType.ACCESS_TOKEN,
+        hashToken: this.generateHashToken(payload.newAccessToken),
+        refreshTokenId,
+        userId,
+      });
+
+      // Identify the existedUser
+      const existedUser =
+        (await this.authCacheService.getUserCache(userId)) ||
+        (await this.userService.checkExist({
+          where: { id: userId },
+          select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
+        }));
+
+      // Set new accessToken cache
+      await this.authCacheService.setTokenCache({
+        user: existedUser,
+        type: ETokenType.ACCESS_TOKEN,
+        hashToken: this.generateHashToken(newAccessToken),
+      });
+
+      // Delete old token cache
+      await this.authCacheService.deleteTokenCache({
+        userId,
+        hashTokens: [oldHashAccessToken],
+      });
+    }
+
+    // Delete token pair (refresh & access token)
+    else if (mode === EProcessUserTokenMode.DELETE_TOKEN_PAIR) {
       const { refreshTokenId, userId } = payload;
+      const tokens = await this.repository.findBy([{ id: refreshTokenId }, { refreshTokenId }]);
+      await repository.delete(tokens.map((i) => i.id));
 
-      // CASE: REFRESH_ACCESS_TOKEN ==> Delete [OLD] accessToken + Set new accessToken cache
-      if (mode === EProcessUserTokenMode.REFRESH_ACCESS_TOKEN) {
-        const { newAccessToken } = payload;
-
-        // Delete [OLD] accessToken
-        await repository.delete({ refreshTokenId });
-
-        // Create [NEW] accessToken
-        await repository.save({
-          id: uuidv7(),
-          type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.generateHashToken(payload.newAccessToken),
-          refreshTokenId,
-          userId,
-        });
-
-        // Identify the existedUser
-        const existedUser =
-          (await this.redisCacheService.get<UserEntity>(`${ETableName.USERS}/${userId}`)) ||
-          (await this.userService.checkExist({
-            where: { id: userId },
-            select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
-          }));
-
-        // Set new accessToken cache
-        this.redisCacheService.setAuthCache({
-          user: existedUser,
-          type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.generateHashToken(newAccessToken),
-        });
-      }
-
-      // Delete token pair (refresh & access token)
-      else {
-        const tokens = await this.repository.findBy([{ id: refreshTokenId }, { refreshTokenId }]);
-        await repository.delete(tokens.map((i) => i.id));
-
-        // Delete token caches
-        const delHashTokens = tokens.map(({ hashToken }) => hashToken);
-        await this.redisCacheService.deleteAuthCache({ userId, hashTokens: delHashTokens });
-      }
+      // Delete token caches
+      const delHashTokens = tokens.map(({ hashToken }) => hashToken);
+      await this.authCacheService.deleteTokenCache({ userId, hashTokens: delHashTokens });
     }
 
     // CASE: ==> RESET_AND_CREATE_NEW_TOKEN_PAIR | CREATE_NEW_TOKEN_PAIR <==
@@ -135,7 +135,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
 
         // Delete all token caches
         const delHashTokens = allTokens.map(({ hashToken }) => hashToken);
-        await this.redisCacheService.deleteAuthCache({ userId, hashTokens: delHashTokens });
+        await this.authCacheService.deleteTokenCache({ userId, hashTokens: delHashTokens });
       }
 
       // Create [NEW] refreshToken
@@ -157,18 +157,12 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       });
 
       // Set the accessToken & refreshToken cache to redis
-      await Promise.all([
-        this.redisCacheService.setAuthCache({
-          user,
-          type: ETokenType.REFRESH_TOKEN,
-          hashToken: this.generateHashToken(newRefreshToken),
-        }),
-        this.redisCacheService.setAuthCache({
-          user,
-          type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.generateHashToken(newAccessToken),
-        }),
-      ]);
+      await this.authCacheService.setTokenCache({
+        type: 'PAIR',
+        user,
+        hashAccessToken: this.generateHashToken(newAccessToken),
+        hashRefreshToken: this.generateHashToken(newRefreshToken),
+      });
     }
   }
 }

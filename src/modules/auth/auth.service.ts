@@ -14,7 +14,7 @@ import {
   EProcessUserTokenMode,
 } from '@/modules/user/user-token/user-token.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
-import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
+import { UserTokenCacheService } from '@/modules/user/user-token/user-token-cache.service';
 import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 import {
   SignUpDto,
@@ -33,7 +33,7 @@ export class AuthService extends BaseService<UserEntity> {
     public readonly repository: Repository<UserEntity>,
 
     private userService: UserService,
-    private redisCacheService: RedisCacheService,
+    private userTokenCacheService: UserTokenCacheService,
     private userTokenService: UserTokenService,
     private jwtService: JwtService,
     private awsS3Service: AwsS3Service,
@@ -56,7 +56,7 @@ export class AuthService extends BaseService<UserEntity> {
     const hashToken = this.userTokenService.generateHashToken(token);
 
     // Get auth cache data from redis
-    const authCache = await this.redisCacheService.getAuthCache({
+    const authCache = await this.userTokenCacheService.getTokenCache({
       userId: decodeToken.id,
       hashToken,
     });
@@ -74,7 +74,7 @@ export class AuthService extends BaseService<UserEntity> {
     );
 
     // Set the auth cache data to redis
-    await this.redisCacheService.setAuthCache({ user: existedUser, type, hashToken });
+    await this.userTokenCacheService.setTokenCache({ user: existedUser, type, hashToken });
 
     return existedUser;
   }
@@ -211,7 +211,8 @@ export class AuthService extends BaseService<UserEntity> {
 
     // [JWT] Verify accessToken has expired
     try {
-      this.jwtService.verifyToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken });
+      this.jwtService.verifyToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken }); // ==> Should be throw jwt expired error
+      // throw new BadRequestException();
     } catch (error) {
       if (error.message !== 'jwt expired')
         throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
@@ -225,12 +226,13 @@ export class AuthService extends BaseService<UserEntity> {
     );
 
     // [DATABASE] Check the accessToken already exists
+    const hashAccessToken = this.userTokenService.generateHashToken(accessToken);
     await this.userTokenService.checkExist(
       {
         where: {
           userId,
           type: ETokenType.ACCESS_TOKEN,
-          hashToken: this.userTokenService.generateHashToken(accessToken),
+          hashToken: hashAccessToken,
           refreshTokenId,
         },
       },
@@ -248,6 +250,7 @@ export class AuthService extends BaseService<UserEntity> {
       userId,
       refreshTokenId,
       newAccessToken,
+      oldHashAccessToken: hashAccessToken,
     });
 
     return { accessToken: newAccessToken };

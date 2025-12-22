@@ -32,12 +32,18 @@ export class JwtService {
   }
   private jwtSecretKey: TEnvConfiguration['jwtSecretKey'];
 
+  // #======================#
+  // # ==> DECODE TOKEN <== #
+  // #======================#
   decodeToken<T extends ETokenType>(payload: TVerifyToken<T>): TTokenPayload<T>;
   decodeToken<T extends ETokenType>(payload: TVerifyToken<T>) {
     const decoded = jwt.decode(payload.token, { json: true }) || {};
     return decoded;
   }
 
+  // #========================#
+  // # ==> GENERATE TOKEN <== #
+  // #========================#
   generateToken<T extends ETokenType>(payload: TGenerateToken<T>) {
     const { tokenPayload, options } = payload;
     return jwt.sign(
@@ -52,6 +58,9 @@ export class JwtService {
     );
   }
 
+  // #======================#
+  // # ==> VERIFY TOKEN <== #
+  // #======================#
   verifyToken<T extends ETokenType>(payload: TVerifyToken<T>) {
     const { type, token } = payload;
     // Verify the ACCESS_TOKEN type is valid
