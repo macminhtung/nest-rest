@@ -1,5 +1,5 @@
 import { Column, PrimaryColumn, Entity, ManyToOne, OneToMany } from 'typeorm';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
@@ -40,7 +40,6 @@ export class UserEntity extends BaseEntity {
   roleId: number;
 
   // Relation tables
-  @ApiPropertyOptional()
   @ManyToOne(() => RoleEntity)
   role?: RoleEntity;
 
