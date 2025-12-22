@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import crypto from 'crypto';
 import { v7 as uuidv7 } from 'uuid';
-import { ETableName, ETokenType } from '@/common/enums';
+import { ETokenType } from '@/common/enums';
 import { BaseService } from '@/common/base.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 import { RedisCacheService } from '@/modules/redis-cache/redis-cache.service';
@@ -65,8 +65,9 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
     // Identify the repository
     const repository = txRepository || this.repository;
 
-    // Initialize cache keys for deletion
-    const delCacheKeys: string[] = [];
+    // Initialize hashTokens for deletion
+    const delHashTokens: string[] = [];
+    let isDeleteUserCache = false;
 
     // CASE: ==> DELETE_TOKEN_PAIR | REFRESH_ACCESS_TOKEN <==
     if (
@@ -95,9 +96,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
         await repository.delete(tokens.map((i) => i.id));
 
         // Add delete cache keys
-        tokens.forEach(({ userId, hashToken }) =>
-          delCacheKeys.push(`${ETableName.USERS}/${userId}/${hashToken}`),
-        );
+        tokens.forEach(({ hashToken }) => delHashTokens.push(hashToken));
       }
     }
 
@@ -114,9 +113,8 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
         await repository.delete(allTokens.map((i) => i.id));
 
         // Add delete cache keys
-        allTokens.forEach(({ userId, hashToken }) =>
-          delCacheKeys.push(`${ETableName.USERS}/${userId}/${hashToken}`),
-        );
+        allTokens.forEach(({ hashToken }) => delHashTokens.push(hashToken));
+        isDeleteUserCache = true;
       }
 
       // Create [NEW] refreshToken
@@ -138,8 +136,12 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       });
     }
 
-    // Delete cache keys
-    if (delCacheKeys.length)
-      await Promise.all(delCacheKeys.map((key) => this.redisCacheService.delete(key)));
+    // Delete authCache
+    if (delHashTokens.length)
+      await this.redisCacheService.deleteAuthCache({
+        userId,
+        hashTokens: delHashTokens,
+        isDeleteUserCache,
+      });
   }
 }

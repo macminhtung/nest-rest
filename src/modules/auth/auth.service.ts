@@ -20,7 +20,6 @@ import {
   TVerifyToken,
   AwsS3Service,
   ACCESS_TOKEN_EXPIRES_IN,
-  REFRESH_TOKEN_EXPIRES_IN,
 } from '@/modules/shared/services';
 import {
   SignUpDto,
@@ -61,12 +60,14 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate hashToken
     const hashToken = this.userTokenService.generateHashToken(token);
 
-    // Get cache data from redis
-    const cacheKey = `${ETableName.USERS}/${decodeToken.id}/${hashToken}`;
-    const cacheUser = await this.redisCacheService.get<UserEntity>(cacheKey);
+    // Get auth cache data from redis
+    const authCache = await this.redisCacheService.getAuthCache({
+      userId: decodeToken.id,
+      hashToken,
+    });
 
-    // CASE: Cache data already exists ==> Return cache data
-    if (cacheUser) return cacheUser;
+    // CASE: Auth cache data already exists ==> Return cache data
+    if (authCache) return authCache;
 
     // Check user already exists
     const existedUser = await this.userService.checkExist(
@@ -78,12 +79,8 @@ export class AuthService extends BaseService<UserEntity> {
       errorMessage,
     );
 
-    // Set the new cache data to redis
-    await this.redisCacheService.set<UserEntity>(
-      cacheKey,
-      existedUser,
-      type === ETokenType.ACCESS_TOKEN ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN,
-    );
+    // Set the auth cache data to redis
+    await this.redisCacheService.setAuthCache({ user: existedUser, type, hashToken });
 
     return existedUser;
   }
