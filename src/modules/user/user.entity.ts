@@ -36,7 +36,7 @@ export class UserEntity extends BaseEntity {
 
   // Relation columns
   @ApiProperty({ type: 'integer' })
-  @Column({ type: 'int2' })
+  @Column({ type: 'int4' })
   roleId: number;
 
   // Relation tables
