@@ -7,7 +7,7 @@ import { BaseEntity } from '@/common/base.entity';
 export class RoleEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn({ type: 'int4' })
-  id: string;
+  id: number;
 
   @ApiProperty()
   @Column({ type: 'enum', enum: ERoleName })
