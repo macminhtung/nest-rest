@@ -5,6 +5,7 @@
 - RestAPI + Swagger
 - Elastic Search
 - Redis cache
+- Jest (unit + e2e) testing
 
 ## Getting Started
 
