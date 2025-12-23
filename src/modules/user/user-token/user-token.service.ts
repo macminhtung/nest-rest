@@ -112,10 +112,17 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
     // Delete token pair (refresh & access token)
     else if (mode === EProcessUserTokenMode.DELETE_TOKEN_PAIR) {
       const { refreshTokenId, userId } = payload;
-      const tokens = await this.repository.findBy([{ id: refreshTokenId }, { refreshTokenId }]);
+
+      // Get the token pair
+      const tokens = await this.repository.find({
+        where: [{ id: refreshTokenId }, { refreshTokenId }],
+        select: ['id', 'hashToken'],
+      });
+
+      // Delete the token pair
       await repository.delete(tokens.map((i) => i.id));
 
-      // Delete token caches
+      // Delete token pair caches
       const delHashTokens = tokens.map(({ hashToken }) => hashToken);
       await this.authCacheService.deleteTokenCache({ userId, hashTokens: delHashTokens });
     }
@@ -128,9 +135,13 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       const { newRefreshToken, newAccessToken, user } = payload;
       const { id: userId } = user;
 
-      // Clear all tokens belong to the userId
+      // CASE: ==> RESET_AND_CREATE_NEW_TOKEN_PAIR
       if (mode === EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR) {
-        const allTokens = await this.repository.findBy({ userId });
+        // Clear all tokens belong to the userId
+        const allTokens = await this.repository.find({
+          where: { userId },
+          select: ['id', 'hashToken'],
+        });
         await repository.delete(allTokens.map((i) => i.id));
 
         // Delete all token caches

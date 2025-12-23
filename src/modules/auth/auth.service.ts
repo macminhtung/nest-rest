@@ -211,8 +211,11 @@ export class AuthService extends BaseService<UserEntity> {
 
     // [JWT] Verify accessToken has expired
     try {
-      this.jwtService.verifyToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken }); // ==> Should be throw jwt expired error
-      // throw new BadRequestException();
+      // ==> Should be throw jwt expired error
+      this.jwtService.verifyToken({ type: ETokenType.ACCESS_TOKEN, token: accessToken });
+
+      // ==> Not throw jwt expired ==> This means the token is still alive
+      return { accessToken: accessToken };
     } catch (error) {
       if (error.message !== 'jwt expired')
         throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
@@ -244,14 +247,24 @@ export class AuthService extends BaseService<UserEntity> {
       tokenPayload: { id: userId, email, type: ETokenType.ACCESS_TOKEN },
     });
 
-    // Store new accessToken
-    await this.userTokenService.processUserToken({
-      mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
-      userId,
-      refreshTokenId,
-      newAccessToken,
-      oldHashAccessToken: hashAccessToken,
-    });
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease(
+      queryRunner,
+
+      // Process function
+      async () => {
+        // Store new accessToken
+        await this.userTokenService.processUserToken({
+          mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
+          txRepository: queryRunner.manager.getRepository(UserTokenEntity),
+          userId,
+          refreshTokenId,
+          newAccessToken,
+          oldHashAccessToken: hashAccessToken,
+        });
+      },
+    );
 
     return { accessToken: newAccessToken };
   }
