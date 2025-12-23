@@ -21,7 +21,7 @@ import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/us
 import type { TRequest } from '@/common/types';
 
 @ApiBearerAuth()
-@Controller(ETableName.USERS)
+@Controller(ETableName.USER)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

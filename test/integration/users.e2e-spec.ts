@@ -21,7 +21,7 @@ describe('User endpoint', () => {
   // # ==> CREATE USER <== #
   // #=====================#
 
-  it(`/${ETableName.USERS} -> POST`, async () => {
+  it(`/${ETableName.USER} -> POST`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -30,7 +30,7 @@ describe('User endpoint', () => {
     };
     return await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload)
       .expect(HttpStatus.CREATED)
       .then((res) => {
@@ -43,7 +43,7 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USERS} -> POST (Invalid email)`, async () => {
+  it(`/${ETableName.USER} -> POST (Invalid email)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -52,12 +52,12 @@ describe('User endpoint', () => {
     };
     return await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload)
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-  it(`/${ETableName.USERS} -> POST (Email already taken)`, async () => {
+  it(`/${ETableName.USER} -> POST (Email already taken)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -66,7 +66,7 @@ describe('User endpoint', () => {
     };
     await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload)
       .expect(HttpStatus.CREATED);
 
@@ -79,7 +79,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(payloadEmailTaken)
       .expect(HttpStatus.CONFLICT);
   });
@@ -87,14 +87,14 @@ describe('User endpoint', () => {
   // #=====================#
   // # ==> UPDATE USER <== #
   // #=====================#
-  it(`/${ETableName.USERS}/:userId -> PATCH (Update user)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PATCH (Update user)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    const res = await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    const res = await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     const user: UserEntity = res.body;
 
     const updatePayload: UpdateUserDto = {
@@ -104,7 +104,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USERS}/${user.id}`)
+      .patch(`/${ETableName.USER}/${user.id}`)
       .send(updatePayload)
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -117,35 +117,35 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USERS}/:userId -> PATCH (Invalid UUID)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PATCH (Invalid UUID)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     const updatePayload: UpdateUserDto = { firstName: 'test' };
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USERS}/1`)
+      .patch(`/${ETableName.USER}/1`)
       .send(updatePayload)
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-  it(`/${ETableName.USERS}/:userId -> PATCH (User Not Found)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PATCH (User Not Found)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
 
     const updatePayload: UpdateUserDto = { firstName: 'test' };
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USERS}/${testApp.testUUID}`)
+      .patch(`/${ETableName.USER}/${testApp.testUUID}`)
       .send(updatePayload)
       .expect(HttpStatus.NOT_FOUND);
   });
@@ -153,19 +153,19 @@ describe('User endpoint', () => {
   // #========================#
   // # ==> GET USER BY ID <== #
   // #========================#
-  it(`/${ETableName.USERS}/:userId -> GET (Valid user)`, async () => {
+  it(`/${ETableName.USER}/:userId -> GET (Valid user)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    const res = await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    const res = await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     const createdUser: UserEntity = res.body;
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USERS}/${createdUser.id}`)
+      .get(`/${ETableName.USER}/${createdUser.id}`)
       .expect(200)
       .then((res) => {
         const user: UserEntity = res.body;
@@ -177,37 +177,37 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USERS}/:userId -> GET (Invalid UUID)`, async () => {
+  it(`/${ETableName.USER}/:userId -> GET (Invalid UUID)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
 
-    return await testApp.getRequest().get(`/${ETableName.USERS}/1`).expect(HttpStatus.BAD_REQUEST);
+    return await testApp.getRequest().get(`/${ETableName.USER}/1`).expect(HttpStatus.BAD_REQUEST);
   });
 
-  it(`/${ETableName.USERS}/:userId -> GET (User not Found)`, async () => {
+  it(`/${ETableName.USER}/:userId -> GET (User not Found)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
 
     await testApp
       .getRequest()
-      .get(`/${ETableName.USERS}/${testApp.testUUID}`)
+      .get(`/${ETableName.USER}/${testApp.testUUID}`)
       .expect(HttpStatus.NOT_FOUND);
   });
 
   // #=============================#
   // # ==> GET PAGINATED USERS <== #
   // #=============================#
-  it(`/${ETableName.USERS} -> GET (Get users - pagination)`, async () => {
+  it(`/${ETableName.USER} -> GET (Get users - pagination)`, async () => {
     const createPayload1: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -222,12 +222,12 @@ describe('User endpoint', () => {
     };
     await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload1)
       .expect(HttpStatus.CREATED);
     await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload2)
       .expect(HttpStatus.CREATED);
 
@@ -240,7 +240,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USERS}`)
+      .get(`/${ETableName.USER}`)
       .query({ ...queryParams })
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -255,7 +255,7 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USERS} -> GET (Get users - pagination - Get by email)`, async () => {
+  it(`/${ETableName.USER} -> GET (Get users - pagination - Get by email)`, async () => {
     const createPayload1: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -270,12 +270,12 @@ describe('User endpoint', () => {
     };
     await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload1)
       .expect(HttpStatus.CREATED);
     await testApp
       .getRequest()
-      .post(`/${ETableName.USERS}`)
+      .post(`/${ETableName.USER}`)
       .send(createPayload2)
       .expect(HttpStatus.CREATED);
 
@@ -285,7 +285,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USERS}`)
+      .get(`/${ETableName.USER}`)
       .query({ ...queryParams })
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -297,14 +297,14 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USERS} -> GET (Get users - pagination - Get by invalid email)`, async () => {
+  it(`/${ETableName.USER} -> GET (Get users - pagination - Get by invalid email)`, async () => {
     const queryParams: GetUsersPaginatedDto = {
       roleIds: [DEFAULT_ROLES.USER.id],
     };
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USERS}`)
+      .get(`/${ETableName.USER}`)
       .query({ ...queryParams })
       .expect(HttpStatus.BAD_REQUEST);
   });
@@ -312,45 +312,45 @@ describe('User endpoint', () => {
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
-  it(`/${ETableName.USERS}/:userId -> DELETE`, async () => {
+  it(`/${ETableName.USER}/:userId -> DELETE`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    const res = await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    const res = await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     const user: UserEntity = res.body;
 
-    await testApp.getRequest().delete(`/${ETableName.USERS}/${user.id}`).expect(HttpStatus.OK);
-    await testApp.getRequest().get(`/${ETableName.USERS}/${user.id}`).expect(HttpStatus.NOT_FOUND);
+    await testApp.getRequest().delete(`/${ETableName.USER}/${user.id}`).expect(HttpStatus.OK);
+    await testApp.getRequest().get(`/${ETableName.USER}/${user.id}`).expect(HttpStatus.NOT_FOUND);
   });
 
-  it(`/${ETableName.USERS}/:userId -> DELETE (Invalid UUID)`, async () => {
+  it(`/${ETableName.USER}/:userId -> DELETE (Invalid UUID)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     await testApp
       .getRequest()
-      .delete(`/${ETableName.USERS}/invalid-uuid`)
+      .delete(`/${ETableName.USER}/invalid-uuid`)
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-  it(`/${ETableName.USERS}/:userId -> DELETE (User not Found)`, async () => {
+  it(`/${ETableName.USER}/:userId -> DELETE (User not Found)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
       email: 'test@test.com',
       roleId: DEFAULT_ROLES.USER.id,
     };
-    await testApp.getRequest().post(`/${ETableName.USERS}`).send(createPayload);
+    await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
     await testApp
       .getRequest()
-      .delete(`/${ETableName.USERS}/${testApp.testUUID}`)
+      .delete(`/${ETableName.USER}/${testApp.testUUID}`)
       .expect(HttpStatus.NOT_FOUND);
   });
 });

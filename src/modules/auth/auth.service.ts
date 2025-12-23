@@ -14,7 +14,7 @@ import {
   EProcessUserTokenMode,
 } from '@/modules/user/user-token/user-token.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
-import { UserTokenCacheService } from '@/modules/user/user-token/user-token-cache.service';
+import { AuthCacheService } from '@/modules/redis-cache/auth-cache.service';
 import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/services';
 import {
   SignUpDto,
@@ -33,7 +33,7 @@ export class AuthService extends BaseService<UserEntity> {
     public readonly repository: Repository<UserEntity>,
 
     private userService: UserService,
-    private userTokenCacheService: UserTokenCacheService,
+    private userTokenCacheService: AuthCacheService,
     private userTokenService: UserTokenService,
     private jwtService: JwtService,
     private awsS3Service: AwsS3Service,

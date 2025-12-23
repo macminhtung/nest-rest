@@ -24,7 +24,7 @@ import {
 } from '@/common/dtos';
 
 @ApiBearerAuth()
-@Controller(ETableName.PRODUCTS)
+@Controller(ETableName.PRODUCT)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

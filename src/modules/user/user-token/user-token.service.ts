@@ -6,7 +6,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { ETokenType } from '@/common/enums';
 import { BaseService } from '@/common/base.service';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
-import { UserTokenCacheService } from '@/modules/user/user-token/user-token-cache.service';
+import { AuthCacheService } from '@/modules/redis-cache/auth-cache.service';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 
@@ -49,7 +49,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
     public readonly repository: Repository<UserTokenEntity>,
 
     private userService: UserService,
-    private authCacheService: UserTokenCacheService,
+    private authCacheService: AuthCacheService,
   ) {
     super(repository);
   }

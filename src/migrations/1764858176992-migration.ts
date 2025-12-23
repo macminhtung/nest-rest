@@ -8,7 +8,7 @@ export class Migration1764858176992 implements MigrationInterface {
 
     // Insert default roles
     await queryRunner.manager.insert(
-      ETableName.ROLES,
+      ETableName.ROLE,
       DEFAULT_ROLES_VALUES.map((item) => ({ id: item.id, name: item.name })),
     );
   }
@@ -17,6 +17,6 @@ export class Migration1764858176992 implements MigrationInterface {
     const DEFAULT_ROLE_IDS = Object.values(DEFAULT_ROLES).map((item) => item.id);
 
     // Delete default roles
-    await queryRunner.manager.delete(ETableName.ROLES, DEFAULT_ROLE_IDS);
+    await queryRunner.manager.delete(ETableName.ROLE, DEFAULT_ROLE_IDS);
   }
 }

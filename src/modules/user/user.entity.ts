@@ -5,7 +5,7 @@ import { BaseEntity } from '@/common/base.entity';
 import { RoleEntity } from '@/modules/user/role/role.entity';
 import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
 
-@Entity({ name: ETableName.USERS })
+@Entity({ name: ETableName.USER })
 export class UserEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')

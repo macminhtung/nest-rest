@@ -14,15 +14,13 @@ type TSetTokenCachePayload = { user: UserEntity } & (
 type TDeleteTokenCachePayload = { userId: string; hashTokens: string[] };
 
 @Injectable()
-export class UserTokenCacheService {
+export class AuthCacheService {
   constructor(private redisCacheService: RedisCacheService) {}
   // #========================#
   // # ==> GET USER CACHE <== #
   // #========================#
   async getUserCache(userId: string): Promise<UserEntity | undefined> {
-    return await this.redisCacheService.get<UserEntity | undefined>(
-      `${ETableName.USERS}/${userId}`,
-    );
+    return await this.redisCacheService.get<UserEntity | undefined>(`${ETableName.USER}/${userId}`);
   }
 
   // #=========================#
@@ -38,7 +36,7 @@ export class UserTokenCacheService {
     if (!userCache) return undefined;
 
     // Get token cache from redis
-    const tokenCacheKey = `${ETableName.USERS}/${userId}/${hashToken}`;
+    const tokenCacheKey = `${ETableName.USER}/${userId}/${hashToken}`;
     const tokenCache = await this.redisCacheService.get<boolean>(tokenCacheKey);
 
     // CASE: Have no tokenCache
@@ -53,7 +51,7 @@ export class UserTokenCacheService {
   // #=========================#
   async setTokenCache(payload: TSetTokenCachePayload): Promise<void> {
     const { user, type } = payload;
-    const userCacheKey = `${ETableName.USERS}/${user.id}`;
+    const userCacheKey = `${ETableName.USER}/${user.id}`;
 
     // Add one of token cache
     if (type !== 'PAIR') {
@@ -101,7 +99,7 @@ export class UserTokenCacheService {
     // Delete token cache keys
     await Promise.all(
       hashTokens.map((hashToken) =>
-        this.redisCacheService.delete(`${ETableName.USERS}/${userId}/${hashToken}`),
+        this.redisCacheService.delete(`${ETableName.USER}/${userId}/${hashToken}`),
       ),
     );
   }
