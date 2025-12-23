@@ -41,10 +41,10 @@ export class AuthService extends BaseService<UserEntity> {
     super(repository);
   }
 
-  // #=====================#
-  // # ==> CHECK TOKEN <== #
-  // #=====================#
-  async checkToken<T extends ETokenType>(
+  // #==================================#
+  // # ==> VERIFY TOKEN AND CACHING <== #
+  // #==================================#
+  async verifyTokenAndCaching<T extends ETokenType>(
     payload: TVerifyToken<T> & { errorMessage?: string },
   ): Promise<UserEntity> {
     const { type, token, errorMessage } = payload;
@@ -55,14 +55,14 @@ export class AuthService extends BaseService<UserEntity> {
     // Generate hashToken
     const hashToken = this.userTokenService.generateHashToken(token);
 
-    // Get auth cache data from redis
-    const authCache = await this.userTokenCacheService.getTokenCache({
+    // Get token cache data from redis
+    const tokenCache = await this.userTokenCacheService.getTokenCache({
       userId: decodeToken.id,
       hashToken,
     });
 
-    // CASE: Auth cache data already exists ==> Return cache data
-    if (authCache) return authCache;
+    // CASE: Token cache data already exists ==> Return token cache data
+    if (tokenCache) return tokenCache;
 
     // Check user already exists
     const existedUser = await this.userService.checkExist(
@@ -73,7 +73,7 @@ export class AuthService extends BaseService<UserEntity> {
       errorMessage,
     );
 
-    // Set the auth cache data to redis
+    // Set the token cache data to redis
     await this.userTokenCacheService.setTokenCache({ user: existedUser, type, hashToken });
 
     return existedUser;
