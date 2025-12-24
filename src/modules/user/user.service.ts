@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { hash, compare } from 'bcrypt';
 import { DEFAULT_ROLES } from '@/common/constants';
-import { DeleteRecordResponseDto } from '@/common/dtos';
 import { BaseService } from '@/common/base.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
@@ -18,21 +17,18 @@ export class UserService extends BaseService<UserEntity> {
     super(repository);
   }
 
+  // #=========================#
+  // # ==> RANDOM PASSWORD <== #
+  // #=========================#
   randomPassword(length = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    return result;
+    return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * 62))).join('');
   }
 
   // #================================#
   // # ==> GENERATE HASH PASSWORD <== #
   // #================================#
-  async generateHashPassword(password: string): Promise<string> {
+  async generateHashPassword(password: string) {
     const hashPassword = await hash(password, 10);
     return hashPassword;
   }
@@ -40,12 +36,15 @@ export class UserService extends BaseService<UserEntity> {
   // #===============================#
   // # ==> COMPARE HASH PASSWORD <== #
   // #===============================#
-  async compareHashPassword(payload: { password: string; hashPassword: string }): Promise<boolean> {
+  async compareHashPassword(payload: { password: string; hashPassword: string }) {
     const { password, hashPassword } = payload;
     return await compare(password, hashPassword);
   }
 
-  async createUser(payload: CreateUserDto): Promise<UserEntity> {
+  // #=====================#
+  // # ==> CREATE USER <== #
+  // #=====================#
+  async createUser(payload: CreateUserDto) {
     const { email } = payload;
     // Prevent creating if email has conflict
     await this.checkConflict({ where: { email } });
@@ -78,10 +77,10 @@ export class UserService extends BaseService<UserEntity> {
     return { ...existedUser, ...payload };
   }
 
-  // #========================#
-  // # ==> GET USER BY ID <== #
-  // #========================#
-  async getUserById(id: string) {
+  // #==================#
+  // # ==> GET USER <== #
+  // #==================#
+  async getUser(id: string) {
     const existedUser = await this.checkExist({ where: { id }, relations: { role: true } });
     return existedUser;
   }
@@ -112,10 +111,10 @@ export class UserService extends BaseService<UserEntity> {
     return paginationData;
   }
 
-  // #===========================#
-  // # ==> DELETE USER BY ID <== #
-  // #===========================#
-  async deleteUserById(authUser: UserEntity, id: string): Promise<DeleteRecordResponseDto> {
+  // #=====================#
+  // # ==> DELETE USER <== #
+  // #=====================#
+  async deleteUser(authUser: UserEntity, id: string) {
     // Prevent delete yourself
     if (authUser.id === id) throw new BadRequestException({ message: 'Can not delete yourself' });
 
@@ -125,6 +124,6 @@ export class UserService extends BaseService<UserEntity> {
     // Delete the user
     await this.repository.delete(id);
 
-    return { deleted: true, message: 'User deleted successfully' };
+    return id;
   }
 }

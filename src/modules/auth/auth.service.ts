@@ -19,7 +19,6 @@ import { JwtService, TVerifyToken, AwsS3Service } from '@/modules/shared/service
 import {
   SignUpDto,
   SignInDto,
-  SignInResponseDto,
   RefreshTokenDto,
   UpdatePasswordDto,
   UpdateProfileDto,
@@ -46,7 +45,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #==================================#
   async verifyTokenAndCaching<T extends ETokenType>(
     payload: TVerifyToken<T> & { errorMessage?: string },
-  ): Promise<UserEntity> {
+  ) {
     const { type, token, errorMessage } = payload;
 
     // Verify token
@@ -98,7 +97,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #================#
   // # ==> SIGNUP <== #
   // #================#
-  async signUp(payload: SignUpDto): Promise<UserEntity> {
+  async signUp(payload: SignUpDto) {
     const { email, password, firstName, lastName } = payload;
 
     // Check if email has conflict
@@ -123,7 +122,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #================#
   // # ==> SIGNIN <== #
   // #================#
-  async signIn(res: Response, payload: SignInDto): Promise<SignInResponseDto> {
+  async signIn(res: Response, payload: SignInDto) {
     const { email, password } = payload;
 
     // Check email already exists
@@ -169,7 +168,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #=================#
   // # ==> SIGNOUT <== #
   // #=================#
-  async signOut(req: TRequest, res: Response): Promise<HttpStatus> {
+  async signOut(req: TRequest, res: Response) {
     const { id: authId } = req.authUser;
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
 

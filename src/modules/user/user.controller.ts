@@ -14,7 +14,7 @@ import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import { DEFAULT_ROLES } from '@/common/constants';
 import { Roles } from '@/decorators';
-import { ApiOkResponsePaginated, DeleteRecordResponseDto } from '@/common/dtos';
+import { ApiOkResponsePaginated } from '@/common/dtos';
 import { UserService } from '@/modules/user/user.service';
 import { UserEntity } from '@/modules/user/user.entity';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
@@ -45,14 +45,14 @@ export class UserController {
     return this.userService.updateUser(id, payload);
   }
 
-  // #========================#
-  // # ==> GET USER BY ID <== #
-  // #========================#
+  // #==================#
+  // # ==> GET USER <== #
+  // #==================#
   @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponsePaginated(UserEntity)
   @Get(':id')
-  getUserById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.getUserById(id);
+  getUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.userService.getUser(id);
   }
 
   // #=============================#
@@ -65,16 +65,13 @@ export class UserController {
     return this.userService.getPaginatedUsers(queryParams);
   }
 
-  // #===========================#
-  // # ==> DELETE USER BY ID <== #
-  // #===========================#
+  // #=====================#
+  // # ==> DELETE USER <== #
+  // #=====================#
   @Roles([DEFAULT_ROLES.ADMIN.id])
-  @ApiOkResponse({ type: DeleteRecordResponseDto })
+  @ApiOkResponse({ type: String })
   @Delete(':id')
-  deleteUserById(
-    @Req() req: TRequest,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<DeleteRecordResponseDto> {
-    return this.userService.deleteUserById(req.authUser, id);
+  deleteUser(@Req() req: TRequest, @Param('id', ParseUUIDPipe) id: string): Promise<string> {
+    return this.userService.deleteUser(req.authUser, id);
   }
 }

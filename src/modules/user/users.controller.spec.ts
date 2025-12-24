@@ -1,6 +1,6 @@
 import { ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DeleteRecordResponseDto, PaginatedResponseDto } from '@/common/dtos';
+import { PaginatedResponseDto } from '@/common/dtos';
 import { DEFAULT_ROLES } from '@/common/constants';
 import { TRequest } from '@/common/types';
 import { UserController } from '@/modules/user/user.controller';
@@ -48,9 +48,9 @@ describe('UserController', () => {
   const mockService = {
     createUser: jest.fn(),
     updateUser: jest.fn(),
-    getUserById: jest.fn(),
+    getUser: jest.fn(),
     getPaginatedUsers: jest.fn(),
-    deleteUserById: jest.fn(),
+    deleteUser: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -146,24 +146,22 @@ describe('UserController', () => {
   // #========================#
   // # ==> GET USER BY ID <== #
   // #========================#
-  describe('getUserById', () => {
+  describe('getUser', () => {
     it('Should get user by id', async () => {
-      mockService.getUserById.mockResolvedValue(initUser1);
-      const result = await controller.getUserById(initUser1.id);
+      mockService.getUser.mockResolvedValue(initUser1);
+      const result = await controller.getUser(initUser1.id);
 
       expect(result).toEqual(initUser1);
     });
 
     it('Should throw BadRequestException if sent invalid uuid', async () => {
-      jest.spyOn(mockService, 'getUserById').mockRejectedValueOnce(new BadRequestException());
-      await expect(controller.getUserById('invalid-uuid')).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      jest.spyOn(mockService, 'getUser').mockRejectedValueOnce(new BadRequestException());
+      await expect(controller.getUser('invalid-uuid')).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('Should throw NotFoundException if the user does not exists', async () => {
-      jest.spyOn(mockService, 'getUserById').mockRejectedValueOnce(new NotFoundException());
-      await expect(controller.getUserById(initUser1.id)).rejects.toBeInstanceOf(NotFoundException);
+      jest.spyOn(mockService, 'getUser').mockRejectedValueOnce(new NotFoundException());
+      await expect(controller.getUser(initUser1.id)).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -191,39 +189,34 @@ describe('UserController', () => {
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
-  describe('deleteUserById', () => {
+  describe('deleteUser', () => {
     const req = { authUser: initAdminUser } as unknown as TRequest;
 
     it('Should delete user by id', async () => {
-      const response: DeleteRecordResponseDto = {
-        deleted: true,
-        message: 'User deleted successfully',
-      };
+      mockService.deleteUser.mockResolvedValue(initUser1.id);
+      const result = await controller.deleteUser(req, initUser1.id);
 
-      mockService.deleteUserById.mockResolvedValue(response);
-      const result = await controller.deleteUserById(req, initUser1.id);
-
-      expect(mockService.deleteUserById).toHaveBeenCalledWith(req.authUser, initUser1.id);
-      expect(result).toEqual(response);
+      expect(mockService.deleteUser).toHaveBeenCalledWith(req.authUser, initUser1.id);
+      expect(result).toBe(initUser1.id);
     });
 
     it('Should throw NotFoundException if the user does not exists', async () => {
-      jest.spyOn(mockService, 'deleteUserById').mockRejectedValueOnce(new NotFoundException());
-      await expect(controller.deleteUserById(req, 'nonexistent-uuid')).rejects.toBeInstanceOf(
+      jest.spyOn(mockService, 'deleteUser').mockRejectedValueOnce(new NotFoundException());
+      await expect(controller.deleteUser(req, 'nonexistent-uuid')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
 
     it('Should throw BadRequestException if sent invalid uuid', async () => {
-      jest.spyOn(mockService, 'deleteUserById').mockRejectedValueOnce(new BadRequestException());
-      await expect(controller.deleteUserById(req, 'invalid-uuid')).rejects.toBeInstanceOf(
+      jest.spyOn(mockService, 'deleteUser').mockRejectedValueOnce(new BadRequestException());
+      await expect(controller.deleteUser(req, 'invalid-uuid')).rejects.toBeInstanceOf(
         BadRequestException,
       );
     });
 
     it('Should throw BadRequestException if user deletes self', async () => {
-      jest.spyOn(mockService, 'deleteUserById').mockRejectedValueOnce(new BadRequestException());
-      await expect(controller.deleteUserById(req, req.authUser.id)).rejects.toThrow(
+      jest.spyOn(mockService, 'deleteUser').mockRejectedValueOnce(new BadRequestException());
+      await expect(controller.deleteUser(req, req.authUser.id)).rejects.toThrow(
         BadRequestException,
       );
     });

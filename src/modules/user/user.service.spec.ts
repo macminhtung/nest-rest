@@ -6,7 +6,7 @@ import { UserEntity } from '@/modules/user/user.entity';
 import { DEFAULT_ROLES } from '@/common/constants';
 import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
 import { EOrder } from '@/common/enums';
-import { DeleteRecordResponseDto, PaginatedResponseDto } from '@/common/dtos';
+import { PaginatedResponseDto } from '@/common/dtos';
 
 describe('UserService', () => {
   let service: UserService;
@@ -130,10 +130,10 @@ describe('UserService', () => {
   // #========================#
   // # ==> GET USER BY ID <== #
   // #========================#
-  describe('getUserById', () => {
+  describe('getUser', () => {
     it('Should return user by id', async () => {
       jest.spyOn(service, 'checkExist').mockResolvedValue(initUser1);
-      const result = await service.getUserById(initUser1.id);
+      const result = await service.getUser(initUser1.id);
 
       expect(service.checkExist).toHaveBeenCalledWith({
         where: { id: initUser1.id },
@@ -186,19 +186,14 @@ describe('UserService', () => {
   // #===========================#
   // # ==> DELETE USER BY ID <== #
   // #===========================#
-  describe('deleteUserById', () => {
+  describe('deleteUser', () => {
     it('Should delete other user successfully', async () => {
-      const deletedResponse: DeleteRecordResponseDto = {
-        deleted: true,
-        message: 'User deleted successfully',
-      };
-
       jest.spyOn(service, 'checkExist').mockResolvedValue(initUser1);
       mockUserRepository.delete.mockResolvedValue(undefined);
-      const result = await service.deleteUserById(authUser, initUser1.id);
+      const result = await service.deleteUser(authUser, initUser1.id);
 
       expect(service.checkExist).toHaveBeenCalledWith({ where: { id: initUser1.id } });
-      expect(result).toEqual(deletedResponse);
+      expect(result).toBe(initUser1.id);
     });
   });
 });
