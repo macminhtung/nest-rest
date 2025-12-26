@@ -135,7 +135,7 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       const { newRefreshToken, newAccessToken, user } = payload;
       const { id: userId } = user;
 
-      // CASE: ==> RESET_AND_CREATE_NEW_TOKEN_PAIR
+      // CASE: ==> RESET_AND_CREATE_NEW_TOKEN_PAIR [UPDATE PASSWORD]
       if (mode === EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR) {
         // Clear all tokens belong to the userId
         const allTokens = await this.repository.find({
@@ -147,6 +147,9 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
         // Delete all token caches
         const delHashTokens = allTokens.map(({ hashToken }) => hashToken);
         await this.authCacheService.deleteTokenCache({ userId, hashTokens: delHashTokens });
+
+        // Update hashPassword for userCache
+        await this.authCacheService.setUserCache(user);
       }
 
       // Create [NEW] refreshToken

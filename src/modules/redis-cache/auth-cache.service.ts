@@ -23,6 +23,13 @@ export class AuthCacheService {
     return await this.redisCacheService.get<UserEntity | undefined>(`${ETableName.USER}/${userId}`);
   }
 
+  // #========================#
+  // # ==> SET USER CACHE <== #
+  // #========================#
+  async setUserCache(user: UserEntity): Promise<void> {
+    await this.redisCacheService.set(`${ETableName.USER}/${user.id}`, user, DEFAULT_TTL);
+  }
+
   // #=========================#
   // # ==> GET TOKEN CACHE <== #
   // #=========================#
@@ -87,7 +94,7 @@ export class AuthCacheService {
     const userCache = await this.redisCacheService.get<UserEntity>(userCacheKey);
 
     // CASE: Have no userCache ==> Set new authCache
-    if (!userCache) await this.redisCacheService.set<UserEntity>(userCacheKey, user, DEFAULT_TTL);
+    if (!userCache) await this.setUserCache(user);
   }
 
   // #============================#

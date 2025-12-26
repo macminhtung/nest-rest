@@ -283,6 +283,7 @@ export class AuthService extends BaseService<UserEntity> {
     if (!isCorrectPassword)
       throw new BadRequestException({ message: ERROR_MESSAGES.PASSWORD_INCORRECT });
 
+    // Prevent reused the password
     const isReusedPassword = await this.userService.compareHashPassword({
       password: newPassword,
       hashPassword: password,
@@ -320,7 +321,7 @@ export class AuthService extends BaseService<UserEntity> {
         await this.userTokenService.processUserToken({
           mode: EProcessUserTokenMode.RESET_AND_CREATE_NEW_TOKEN_PAIR,
           txRepository: queryRunner.manager.getRepository(UserTokenEntity),
-          user: req.authUser,
+          user: { ...req.authUser, password: newHashPassword },
           newRefreshToken,
           newAccessToken,
         });
