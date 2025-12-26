@@ -51,14 +51,17 @@ export class AuthController {
   signOut(@Req() req: TRequest, @Res({ passthrough: true }) res: Response): Promise<HttpStatus> {
     return this.authService.signOut(req, res);
   }
-  // #=======================#
-  // # ==> REFRESH TOKEN <== #
-  // #=======================#
+  // #==============================#
+  // # ==> REFRESH ACCESS TOKEN <== #
+  // #==============================#
   @Public()
   @ApiOkResponse({ type: SignInResponseDto })
-  @Post('refresh-token')
-  refreshToken(@Req() req: TRequest, @Body() payload: RefreshTokenDto): Promise<SignInResponseDto> {
-    return this.authService.refreshToken(req, payload);
+  @Post('refresh-access-token')
+  refreshAccessToken(
+    @Req() req: TRequest,
+    @Body() payload: RefreshTokenDto,
+  ): Promise<SignInResponseDto> {
+    return this.authService.refreshAccessToken(req, payload);
   }
 
   // #=========================#

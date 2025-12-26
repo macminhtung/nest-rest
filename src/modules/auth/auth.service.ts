@@ -86,7 +86,7 @@ export class AuthService extends BaseService<UserEntity> {
 
     res.cookie(ECookieKey.REFRESH_TOKEN, refreshToken, {
       domain: isProductionMode ? process.env.DOMAIN : undefined,
-      path: '/auth/refresh-token',
+      path: '/auth/',
       secure: isProductionMode,
       httpOnly: true,
       sameSite: isProductionMode ? 'none' : 'lax',
@@ -144,6 +144,7 @@ export class AuthService extends BaseService<UserEntity> {
     const commonTokenPayload = { id, email };
     const newAccessToken = this.jwtService.generateToken({
       tokenPayload: { ...commonTokenPayload, type: ETokenType.ACCESS_TOKEN },
+      options: { expiresIn: 5 },
     });
 
     // Generate new refreshToken
@@ -197,7 +198,7 @@ export class AuthService extends BaseService<UserEntity> {
   // #==============================#
   // # ==> REFRESH ACCESS TOKEN <== #
   // #==============================#
-  async refreshToken(req: TRequest, payload: RefreshTokenDto) {
+  async refreshAccessToken(req: TRequest, payload: RefreshTokenDto) {
     const refreshToken = req.cookies[ECookieKey.REFRESH_TOKEN]!;
     const { accessToken } = payload;
 

@@ -67,7 +67,7 @@ export class AuthCacheService {
       await this.redisCacheService.set<boolean>(
         tokenCacheKey,
         true,
-        type === ETokenType.ACCESS_TOKEN ? ACCESS_TOKEN_EXPIRES_IN : DEFAULT_TTL,
+        type === ETokenType.ACCESS_TOKEN ? ACCESS_TOKEN_EXPIRES_IN * 1000 : DEFAULT_TTL,
       );
     }
 
@@ -80,7 +80,7 @@ export class AuthCacheService {
         this.redisCacheService.set<boolean>(
           `${userCacheKey}/${hashAccessToken}`,
           true,
-          ACCESS_TOKEN_EXPIRES_IN,
+          ACCESS_TOKEN_EXPIRES_IN * 1000,
         ),
         this.redisCacheService.set<boolean>(
           `${userCacheKey}/${hashRefreshToken}`,

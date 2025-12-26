@@ -45,7 +45,7 @@ export class ApiExceptionsFilter implements ExceptionFilter {
     const loggerMessage = formatLoggerMessage(stack, message);
 
     // Display error message
-    const status = exception.getStatus();
+    const status = exception?.getStatus() || HttpStatus.INTERNAL_SERVER_ERROR;
     if (status >= 500) this.logger.error(loggerMessage);
     else this.logger.warn(loggerMessage);
 
