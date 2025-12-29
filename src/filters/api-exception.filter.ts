@@ -30,9 +30,9 @@ export class ApiExceptionsFilter implements ExceptionFilter {
       const { query, parameters, stack } = exception;
 
       // Display database error
-      this.logger.error(`${query} - ${parameters} - ${stack}`);
+      this.logger.error(`${query} - ${parameters} - ${stack}`, 'DATABASE');
 
-      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         message: ERROR_MESSAGES.DATABASE_ERROR,
       });
