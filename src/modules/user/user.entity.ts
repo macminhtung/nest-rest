@@ -34,12 +34,12 @@ export class UserEntity extends BaseEntity {
   @Column({ default: false })
   isEmailVerified: boolean;
 
-  // Relation columns
+  // ==> [RELATION] COLUMNS <==
   @ApiProperty({ type: 'integer' })
   @Column({ type: 'int4' })
   roleId: number;
 
-  // Relation tables
+  // ==> [RELATION] TABLES <==
   @ManyToOne(() => RoleEntity)
   role?: RoleEntity;
 

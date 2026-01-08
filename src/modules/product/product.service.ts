@@ -92,7 +92,7 @@ export class ProductService extends BaseService<ProductEntity> {
       // Process function
       async () => {
         // Delete product
-        await queryRunner.manager.delete(ProductEntity, id);
+        await queryRunner.manager.softDelete(ProductEntity, id);
 
         // Delete index for the product
         await this.searchProductService.delete(id);
