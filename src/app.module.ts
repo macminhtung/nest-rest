@@ -12,6 +12,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { UserModule } from '@/modules/user/user.module';
 import { SharedModule } from '@/modules/shared/shared.module';
 import { ProductModule } from '@/modules/product/product.module';
+import { CartModule } from '@/modules/cart/cart.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
 import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
 
@@ -46,6 +47,7 @@ import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
     UserModule,
     AuthModule,
     ProductModule,
+    CartModule,
   ],
   providers: [
     // #===================================#
