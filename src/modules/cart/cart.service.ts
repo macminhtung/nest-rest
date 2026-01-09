@@ -47,6 +47,7 @@ export class CartService extends BaseService<CartEntity> {
         let existedCart = await queryRunner.manager.findOne(CartEntity, {
           where: { userId, status: ECartStatus.ACTIVE },
           relations: ['cartItems'],
+          lock: { mode: 'pessimistic_write' }, // Lock the record for preventing race condition
         });
 
         // CASE: Have no active cart ==> Create new one
