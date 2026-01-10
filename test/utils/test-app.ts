@@ -67,7 +67,8 @@ export class TestApp {
     return {
       get: (url) => request(server).get(url).set('authorization', accessToken),
       post: (url) => request(server).post(url).set('authorization', accessToken),
-      patch: (url) => request(server).patch(url).set('authorization', accessToken),
+      put: (url) => request(server).patch(url).set('authorization', accessToken),
+      // patch: (url) => request(server).patch(url).set('authorization', accessToken),
       delete: (url) => request(server).delete(url).set('authorization', accessToken),
     };
   }

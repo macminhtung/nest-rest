@@ -87,7 +87,7 @@ describe('User endpoint', () => {
   // #=====================#
   // # ==> UPDATE USER <== #
   // #=====================#
-  it(`/${ETableName.USER}/:userId -> PATCH (Update user)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PUT (Update user)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -100,11 +100,12 @@ describe('User endpoint', () => {
     const updatePayload: UpdateUserDto = {
       firstName: 'test 1',
       lastName: 'test 2',
+      roleId: DEFAULT_ROLES.USER.id,
     };
 
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USER}/${user.id}`)
+      .put(`/${ETableName.USER}/${user.id}`)
       .send(updatePayload)
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -117,7 +118,7 @@ describe('User endpoint', () => {
       });
   });
 
-  it(`/${ETableName.USER}/:userId -> PATCH (Invalid UUID)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PUT (Invalid UUID)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -125,15 +126,21 @@ describe('User endpoint', () => {
       roleId: DEFAULT_ROLES.USER.id,
     };
     await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
-    const updatePayload: UpdateUserDto = { firstName: 'test' };
+
+    const updatePayload: UpdateUserDto = {
+      firstName: 'test',
+      lastName: 'test',
+      roleId: DEFAULT_ROLES.USER.id,
+    };
+
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USER}/1`)
+      .put(`/${ETableName.USER}/1`)
       .send(updatePayload)
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-  it(`/${ETableName.USER}/:userId -> PATCH (User Not Found)`, async () => {
+  it(`/${ETableName.USER}/:userId -> PUT (User Not Found)`, async () => {
     const createPayload: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -142,10 +149,15 @@ describe('User endpoint', () => {
     };
     await testApp.getRequest().post(`/${ETableName.USER}`).send(createPayload);
 
-    const updatePayload: UpdateUserDto = { firstName: 'test' };
+    const updatePayload: UpdateUserDto = {
+      firstName: 'test',
+      lastName: 'test',
+      roleId: DEFAULT_ROLES.USER.id,
+    };
+
     return await testApp
       .getRequest()
-      .patch(`/${ETableName.USER}/${testApp.testUUID}`)
+      .put(`/${ETableName.USER}/${testApp.testUUID}`)
       .send(updatePayload)
       .expect(HttpStatus.NOT_FOUND);
   });

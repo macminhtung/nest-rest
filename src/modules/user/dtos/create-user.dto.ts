@@ -3,6 +3,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_ROLES } from '@/common/constants';
 
 export class CreateUserDto {
+  @ApiPropertyOptional()
+  @IsString()
+  @MaxLength(500)
+  avatar?: string;
+
   @ApiProperty()
   @IsEmail()
   email: string;

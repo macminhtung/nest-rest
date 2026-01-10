@@ -1,24 +1,4 @@
-import { IsString, IsIn, MaxLength } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { DEFAULT_ROLES } from '@/common/constants';
+import { OmitType } from '@nestjs/mapped-types';
+import { CreateUserDto } from '@/modules/user/dtos/create-user.dto';
 
-export class UpdateUserDto {
-  @ApiPropertyOptional()
-  @IsString()
-  @MaxLength(500)
-  avatar?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @MaxLength(50)
-  firstName?: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  @MaxLength(50)
-  lastName?: string;
-
-  @ApiPropertyOptional()
-  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.STAFF.id, DEFAULT_ROLES.USER.id])
-  roleId?: number;
-}
+export class UpdateUserDto extends OmitType(CreateUserDto, ['email']) {}
