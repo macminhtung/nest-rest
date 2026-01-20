@@ -8,13 +8,14 @@ import {
   WebSocketServer,
   MessageBody,
   ConnectedSocket,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WsValidationPipe } from '@/pipes';
 import { WsExceptionsFilter } from '@/filters';
 import { LoggingWsInterceptor } from '@/interceptors';
 import { loadENVsFunc } from '@/config';
-import { LOGGER_CONTEXT } from '@/common/constants';
+import { LOGGER_CONTEXT, DEFAULT_ROLES, ERROR_MESSAGES } from '@/common/constants';
 import { ESocketEventName, ETokenType } from '@/common/enums';
 import { UserEntity } from '@/modules/user/user.entity';
 import { AuthService } from '@/modules/auth/auth.service';
@@ -41,11 +42,8 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   // # ==> INITIALIZED <== #
   // #=====================#
   afterInit() {
-    setTimeout(
-      () =>
-        this.logger.debug(`==> INITIALIZED [wss://localhost:${+loadENVsFunc().socketPort}] <==\n`),
-      150,
-    );
+    const { domain, socketPort } = loadENVsFunc();
+    setTimeout(() => this.logger.debug(`==> [wss://${domain}:${+socketPort}] <==\n`), 150);
   }
 
   // #====================#
@@ -82,11 +80,29 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     this.logger.verbose(`==> CLIENT DISCONNECTED [${client.id}] <==`);
   }
 
+  // #============================#
+  // # ==> JOIN_PERSONAL_ROOM <== #
+  // #============================#
+  @SubscribeMessage(ESocketEventName.JOIN_PERSONAL_ROOM)
+  async joinPersonalRoom(@ConnectedSocket() client: TSocket) {
+    const { id: authId } = client.auth || {};
+
+    // Join personal room
+    await client.join(`${authId}`);
+    return true;
+  }
+
   // #=========================#
   // # ==> JOIN_ADMIN_ROOM <== #
   // #=========================#
   @SubscribeMessage(ESocketEventName.JOIN_ADMIN_ROOM)
-  async joinPersonalRoom(@ConnectedSocket() client: TSocket) {
+  async joinAdminRoom(@ConnectedSocket() client: TSocket) {
+    const { roleId } = client.auth || {};
+
+    // Prevent normal users from accessing ADMIN_ROOM
+    if (roleId !== DEFAULT_ROLES.ADMIN.id) throw new WsException(ERROR_MESSAGES.PERMISSION_INVALID);
+
+    // Join ADMIN_ROOM
     await client.join('ADMIN_ROOM');
     return true;
   }

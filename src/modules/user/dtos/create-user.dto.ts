@@ -23,6 +23,6 @@ export class CreateUserDto {
   lastName?: string;
 
   @ApiProperty()
-  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.STAFF.id, DEFAULT_ROLES.USER.id])
+  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.USER.id])
   roleId: number;
 }

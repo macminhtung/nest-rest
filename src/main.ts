@@ -30,6 +30,6 @@ async function bootstrap() {
   const { PROTOCOL, DOMAIN, PORT } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
-  logger.debug(`==> INITIALIZED [${PROTOCOL}://${DOMAIN}:${PORT}/${SWAGGER_PATH}]`, 'APPLICATION');
+  logger.debug(`==> [${PROTOCOL}://${DOMAIN}:${PORT}/${SWAGGER_PATH}]`, 'APPLICATION');
 }
 bootstrap();

@@ -8,7 +8,7 @@ export class GetUsersPaginatedDto extends GetPaginatedRecordsDto {
   @ApiPropertyOptional({ type: 'array', description: 'List of roleId' })
   @IsOptional()
   @Transform(({ value }) => (value ? (Array.isArray(value) ? value : [value]) : undefined))
-  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.STAFF.id, DEFAULT_ROLES.USER.id], { each: true })
+  @IsIn([DEFAULT_ROLES.ADMIN.id, DEFAULT_ROLES.USER.id], { each: true })
   roleIds?: number[];
 
   @ApiPropertyOptional({ type: 'string', description: `User's email` })
