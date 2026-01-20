@@ -30,14 +30,13 @@ export class CartService extends BaseService<CartEntity> {
   async addToCart(userId: string, payload: CreateCartDto) {
     const { cartItems } = payload;
 
-    // Check products is valid
-    for (const { productId, id } of cartItems) {
-      // Check the cartId is valid
-      if (id) await this.cartItemService.checkExist({ where: { id } });
-
-      // Check the productId is valid
-      await this.productService.checkExist({ where: { id: productId } });
-    }
+    // Validate cart items and products in parallel
+    await Promise.all(
+      cartItems.flatMap(({ productId, id }) => [
+        id ? this.cartItemService.checkExist({ where: { id } }) : Promise.resolve(),
+        this.productService.checkExist({ where: { id: productId } }),
+      ]),
+    );
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
@@ -89,7 +88,14 @@ export class CartService extends BaseService<CartEntity> {
           })),
         );
 
-        return { ...existedCart, cartItems: mergeCartItems };
+        // Load cart items with product info
+        const cartItemIds = mergeCartItems.map((item) => item.id);
+        const newCartItems = await queryRunner.manager.find(CartItemEntity, {
+          where: { id: In(cartItemIds) },
+          relations: ['product'],
+        });
+
+        return { ...existedCart, cartItems: newCartItems };
       },
     );
 
