@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseService } from '@/common/base.service';
+import { ESocketEventName } from '@/common/enums';
 import { CartEntity, ECartStatus } from '@/modules/cart/cart.entity';
 import { CartItemService } from '@/modules/cart/cart-item/cart-item.service';
 import { CartItemEntity } from '@/modules/cart/cart-item/cart-item.entity';
 import { ProductService } from '@/modules/product/product.service';
+import { SocketGateway } from '@/modules/gateway/socket.gateway';
 import { CreateCartDto } from '@/modules/cart/dtos';
 
 @Injectable()
@@ -17,6 +19,7 @@ export class CartService extends BaseService<CartEntity> {
 
     private readonly productService: ProductService,
     private readonly cartItemService: CartItemService,
+    private readonly socketGateway: SocketGateway,
   ) {
     super(repository);
   }
@@ -38,7 +41,7 @@ export class CartService extends BaseService<CartEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    const resData = await this.handleTransactionAndRelease(
+    const cartInfo = await this.handleTransactionAndRelease(
       queryRunner,
 
       // Process function
@@ -90,6 +93,9 @@ export class CartService extends BaseService<CartEntity> {
       },
     );
 
-    return resData;
+    // Emit cartInfo to personal room
+    this.socketGateway.wss.to(userId).emit(ESocketEventName.CART_UPDATED, cartInfo);
+
+    return cartInfo;
   }
 }
