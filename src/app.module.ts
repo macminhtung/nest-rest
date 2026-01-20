@@ -15,6 +15,7 @@ import { ProductModule } from '@/modules/product/product.module';
 import { CartModule } from '@/modules/cart/cart.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
 import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
+import { GatewayModule } from '@/modules/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -42,6 +43,11 @@ import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
     // # ==> TYPE_ORM MODULE <== #
     // #=========================#
     TypeOrmModule.forRoot(typeormConfig),
+
+    // #========================#
+    // # ==> GATEWAY MODULE <== #
+    // #========================#
+    GatewayModule,
 
     SharedModule,
     UserModule,

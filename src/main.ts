@@ -21,7 +21,8 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('documentation', app, document);
+  const SWAGGER_PATH = 'documentation';
+  SwaggerModule.setup(SWAGGER_PATH, app, document);
 
   // #===========================#
   // # ==> START APPLICATION <== #
@@ -29,9 +30,6 @@ async function bootstrap() {
   const { PROTOCOL, DOMAIN, PORT } = process.env;
   await app.listen(parseInt(`${PORT}`));
   const logger = app.get(Logger);
-  logger.debug(
-    `==> APP IS RUNNING | PORT: ${PORT} <== [${PROTOCOL}://${DOMAIN}:${PORT}/documentation]`,
-    'APPLICATION',
-  );
+  logger.debug(`==> INITIALIZED [${PROTOCOL}://${DOMAIN}:${PORT}/${SWAGGER_PATH}]`, 'APPLICATION');
 }
 bootstrap();
