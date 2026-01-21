@@ -27,8 +27,8 @@ export class ProductEntity extends BaseEntity {
   unitPrice: number;
 
   // ==> [RELATION] TABLES <==
-  @ApiPropertyOptional()
-  @OneToMany(() => CartItemEntity, (cartItem) => cartItem.cart, {
+  @ApiPropertyOptional({ type: () => CartItemEntity, isArray: true })
+  @OneToMany(() => CartItemEntity, (cartItem) => cartItem.product, {
     cascade: ['remove', 'soft-remove'],
   })
   cartItems: CartItemEntity[];

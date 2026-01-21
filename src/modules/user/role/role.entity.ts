@@ -10,7 +10,7 @@ export class RoleEntity extends BaseEntity {
   id: number;
 
   @ApiProperty()
-  @Column({ type: 'enum', enum: ERoleName })
+  @Column({ enum: ERoleName })
   name: string;
 
   @ApiProperty()

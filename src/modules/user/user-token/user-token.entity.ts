@@ -16,7 +16,7 @@ export class UserTokenEntity extends BaseEntity {
   hashToken: string;
 
   @ApiProperty()
-  @Column({ type: 'enum', enum: ETokenType })
+  @Column({ enum: ETokenType })
   type: ETokenType;
 
   @ApiProperty()

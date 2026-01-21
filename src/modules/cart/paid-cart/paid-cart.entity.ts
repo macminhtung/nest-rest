@@ -2,35 +2,37 @@ import { Column, PrimaryColumn, Entity, ManyToOne, JoinColumn, Index } from 'typ
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
-import { ProductEntity } from '@/modules/product/product.entity';
 import { UserEntity } from '@/modules/user/user.entity';
 
-@Entity({ name: ETableName.CART_ITEM })
-@Index('UQ_CART_ITEM_BASED_ON_PRODUCT_AND_USER', ['productId', 'userId'], { unique: true })
-export class CartItemEntity extends BaseEntity {
+type TPaidProduct = {
+  image: string;
+  quantity: number;
+  name: string;
+  description: string;
+  price: number;
+};
+
+@Entity({ name: ETableName.PAID_CART })
+export class PaidCartEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')
   id: string;
 
   @ApiProperty()
-  @Column({ type: 'bigint' })
-  quantity: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  totalPrice: number;
+
+  @ApiProperty()
+  @Column({ type: 'jsonb', default: [] })
+  paidProducts: TPaidProduct[];
 
   // ==> [RELATION] COLUMNS <==
-  @ApiProperty()
-  @Column({ type: 'uuid' })
-  productId: string;
-
+  @Index()
   @ApiProperty()
   @Column({ type: 'uuid' })
   userId: string;
 
   // ==> [RELATION] TABLES <==
-  @ApiPropertyOptional({ type: () => ProductEntity })
-  @ManyToOne(() => ProductEntity)
-  @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
-
   @ApiPropertyOptional()
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'user_id' })
