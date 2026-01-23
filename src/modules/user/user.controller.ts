@@ -60,7 +60,7 @@ export class UserController {
   // #=============================#
   @Roles([DEFAULT_ROLES.ADMIN.id])
   @ApiOkResponsePaginated(UserEntity)
-  @Get()
+  @Get('/paginated')
   getPaginatedUsers(@Query() queryParams: GetUsersPaginatedDto) {
     return this.userService.getPaginatedUsers(queryParams);
   }

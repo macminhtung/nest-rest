@@ -109,7 +109,10 @@ describe('UserController', () => {
   // # ==> UPDATE USER <== #
   // #=====================#
   describe('updateUser', () => {
-    const updatePayload: UpdateUserDto = { firstName: 'FirstName updated' };
+    const updatePayload: UpdateUserDto = {
+      firstName: 'FirstName updated',
+      roleId: DEFAULT_ROLES.USER.id,
+    };
 
     it('Should update user', async () => {
       const updatedUser = { ...initUser1, ...updatePayload };

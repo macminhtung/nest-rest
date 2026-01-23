@@ -219,7 +219,7 @@ describe('User endpoint', () => {
   // #=============================#
   // # ==> GET PAGINATED USERS <== #
   // #=============================#
-  it(`/${ETableName.USER} -> GET (Get users - pagination)`, async () => {
+  it(`/${ETableName.USER}/paginated -> GET (Get users - pagination)`, async () => {
     const createPayload1: CreateUserDto = {
       firstName: 'test',
       lastName: 'test',
@@ -252,7 +252,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USER}`)
+      .get(`/${ETableName.USER}/paginated`)
       .query({ ...queryParams })
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -297,7 +297,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USER}`)
+      .get(`/${ETableName.USER}/paginated`)
       .query({ ...queryParams })
       .expect(HttpStatus.OK)
       .then((res) => {
@@ -316,7 +316,7 @@ describe('User endpoint', () => {
 
     return await testApp
       .getRequest()
-      .get(`/${ETableName.USER}`)
+      .get(`/${ETableName.USER}/paginated`)
       .query({ ...queryParams })
       .expect(HttpStatus.BAD_REQUEST);
   });
