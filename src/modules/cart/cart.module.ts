@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductModule } from '@/modules/product/product.module';
 import { GatewayModule } from '@/modules/gateway/gateway.module';
+import { BullMQModule } from '@/modules/bullmq/bullmq.module';
 import { CartItemController } from '@/modules/cart/cart-item/cart-item.controller';
 import { CartItemService } from '@/modules/cart/cart-item/cart-item.service';
 import { CartItemEntity } from '@/modules/cart/cart-item/cart-item.entity';
@@ -13,6 +14,7 @@ import { PaidCartEntity } from '@/modules/cart/paid-cart/paid-cart.entity';
     TypeOrmModule.forFeature([CartItemEntity, PaidCartEntity]),
     ProductModule,
     GatewayModule,
+    BullMQModule,
   ],
   controllers: [CartItemController],
   providers: [CartItemService, PaidCartService],

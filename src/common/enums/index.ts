@@ -6,3 +6,4 @@ export * from './cookie-key';
 export * from './boolean';
 export * from './token-type';
 export * from './socket';
+export * from './queue';

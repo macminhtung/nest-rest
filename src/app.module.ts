@@ -16,6 +16,7 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
 import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
 import { GatewayModule } from '@/modules/gateway/gateway.module';
+import { BullMQModule } from '@/modules/bullmq/bullmq.module';
 
 @Module({
   imports: [
@@ -48,6 +49,11 @@ import { GatewayModule } from '@/modules/gateway/gateway.module';
     // # ==> GATEWAY MODULE <== #
     // #========================#
     GatewayModule,
+
+    // #=======================#
+    // # ==> BULLMQ MODULE <== #
+    // #=======================#
+    BullMQModule,
 
     SharedModule,
     UserModule,

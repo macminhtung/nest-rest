@@ -92,14 +92,25 @@ export class CartItemService extends BaseService<CartItemEntity> {
   async checkoutCartItems(userId: string, payload: CheckoutCartItemsDto) {
     const { cartItemIds } = payload;
 
-    // Find cart-items
-    const existedCartItems = await this.repository.find({
-      where: {
-        id: In(cartItemIds),
-        userId,
-      },
-    });
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease(
+      queryRunner,
 
-    return existedCartItems;
+      // Process function
+      async () => {
+        // Find cartItems based on cartItemIds
+        const cartItems = await queryRunner.manager.find(CartItemEntity, {
+          where: { userId, id: In(cartItemIds) },
+        });
+
+        // Delete cartItems
+        await queryRunner.manager.delete(CartItemEntity, cartItems);
+
+        // TODO ==> Handle checkout the cartItems
+      },
+    );
+
+    return HttpStatus.OK;
   }
 }

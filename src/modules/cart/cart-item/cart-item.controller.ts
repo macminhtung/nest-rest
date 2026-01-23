@@ -75,12 +75,12 @@ export class CartItemController {
   // #=============================#
   // # ==> CHECKOUT CART-ITEMS <== #
   // #=============================#
-  @ApiOkResponse({ type: [CartItemEntity] })
+  @ApiOkResponse({ example: HttpStatus.OK, type: Number })
   @Post('checkout')
   checkoutCartItems(
     @Req() req: TRequest,
     @Body() payload: CheckoutCartItemsDto,
-  ): Promise<CartItemEntity[]> {
+  ): Promise<HttpStatus> {
     return this.service.checkoutCartItems(req.authUser.id, payload);
   }
 }
