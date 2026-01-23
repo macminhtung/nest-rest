@@ -17,6 +17,10 @@ export const loadENVsFunc = () => ({
     username: process.env.ELASTIC_USER!,
     password: process.env.ELASTIC_PASSWORD!,
   },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY!,
+    pubicKey: process.env.STRIPE_PUBLIC_KEY!,
+  },
   aws: {
     region: process.env.AWS_REGION!,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,

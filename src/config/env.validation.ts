@@ -27,6 +27,9 @@ export const ENV_VALIDATION = Joi.object({
   ELASTIC_USER: Joi.string().optional().allow('', null),
   ELASTIC_PASSWORD: Joi.string().optional().allow('', null),
 
+  STRIPE_SECRET_KEY: Joi.string().required(),
+  STRIPE_PUBLIC_KEY: Joi.string().required(),
+
   AWS_REGION: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
