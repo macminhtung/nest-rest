@@ -94,11 +94,9 @@ export class CartItemService extends BaseService<CartItemEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease(
+    await this.handleTransactionAndRelease({
       queryRunner,
-
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Find cartItems based on cartItemIds
         const cartItems = await queryRunner.manager.find(CartItemEntity, {
           where: { userId, id: In(cartItemIds) },
@@ -109,7 +107,7 @@ export class CartItemService extends BaseService<CartItemEntity> {
 
         // TODO ==> Handle checkout the cartItems
       },
-    );
+    });
 
     return HttpStatus.OK;
   }

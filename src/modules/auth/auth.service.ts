@@ -249,11 +249,9 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease(
+    await this.handleTransactionAndRelease({
       queryRunner,
-
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Store new accessToken
         await this.userTokenService.processUserToken({
           mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
@@ -264,7 +262,7 @@ export class AuthService extends BaseService<UserEntity> {
           oldHashAccessToken: hashAccessToken,
         });
       },
-    );
+    });
 
     return { accessToken: newAccessToken };
   }
@@ -308,11 +306,9 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease(
+    await this.handleTransactionAndRelease({
       queryRunner,
-
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Update new password
         await queryRunner.manager.update(UserEntity, authId, {
           password: newHashPassword,
@@ -327,7 +323,7 @@ export class AuthService extends BaseService<UserEntity> {
           newAccessToken,
         });
       },
-    );
+    });
 
     // Set refreshToken into cookie
     this.setRefreshTokenIntoCookie(res, newRefreshToken);

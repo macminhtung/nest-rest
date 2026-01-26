@@ -34,6 +34,10 @@ export class UserEntity extends BaseEntity {
   @Column({ default: false })
   isEmailVerified: boolean;
 
+  @ApiProperty()
+  @Column({ unique: true, nullable: true })
+  paymentCustomerId: string;
+
   // ==> [RELATION] COLUMNS <==
   @ApiProperty({ type: 'integer' })
   @Column({ type: 'int4' })

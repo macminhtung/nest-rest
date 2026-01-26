@@ -28,11 +28,9 @@ export class ProductService extends BaseService<ProductEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    const resData = await this.handleTransactionAndRelease(
+    const resData = await this.handleTransactionAndRelease({
       queryRunner,
-
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Create new product
         const newProduct = await queryRunner.manager.save(ProductEntity, {
           id: uuidv7(),
@@ -44,7 +42,7 @@ export class ProductService extends BaseService<ProductEntity> {
 
         return newProduct;
       },
-    );
+    });
 
     return resData;
   }
@@ -61,18 +59,17 @@ export class ProductService extends BaseService<ProductEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease(
+    await this.handleTransactionAndRelease({
       queryRunner,
 
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Update product
         await queryRunner.manager.update(ProductEntity, id, payload);
 
         // Update index for the new product
         await this.searchProductService.index({ id, ...payload });
       },
-    );
+    });
 
     return { ...existedProduct, ...payload };
   }
@@ -86,18 +83,16 @@ export class ProductService extends BaseService<ProductEntity> {
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease(
+    await this.handleTransactionAndRelease({
       queryRunner,
-
-      // Process function
-      async () => {
+      processFunc: async () => {
         // Delete product
         await queryRunner.manager.softDelete(ProductEntity, id);
 
         // Delete index for the product
         await this.searchProductService.delete(id);
       },
-    );
+    });
 
     return id;
   }

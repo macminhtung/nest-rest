@@ -37,11 +37,12 @@ export class BaseService<E extends ObjectLiteral> {
   // #=====================#
   // # ==> TRANSACTION <== #
   // #=====================#
-  async handleTransactionAndRelease<T>(
-    queryRunner: QueryRunner,
-    processFunc: () => Promise<T>,
-    rollbackFunc?: () => void,
-  ): Promise<T> {
+  async handleTransactionAndRelease<T>(payload: {
+    queryRunner: QueryRunner;
+    processFunc: () => Promise<T>;
+    rollbackFunc?: () => void;
+  }): Promise<T> {
+    const { queryRunner, processFunc, rollbackFunc } = payload;
     try {
       // Start transaction
       await queryRunner.startTransaction();
