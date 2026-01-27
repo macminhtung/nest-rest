@@ -40,7 +40,7 @@ export class BaseService<E extends ObjectLiteral> {
   async handleTransactionAndRelease<T>(payload: {
     queryRunner: QueryRunner;
     processFunc: () => Promise<T>;
-    rollbackFunc?: () => void;
+    rollbackFunc?: () => Promise<unknown>;
   }): Promise<T> {
     const { queryRunner, processFunc, rollbackFunc } = payload;
     try {
@@ -58,7 +58,7 @@ export class BaseService<E extends ObjectLiteral> {
       // Rollback
     } catch (err) {
       // Rollback func
-      if (rollbackFunc) rollbackFunc();
+      if (rollbackFunc) await rollbackFunc();
 
       throw new BadRequestException({ message: err.message });
 

@@ -36,7 +36,7 @@ export class UserEntity extends BaseEntity {
 
   @ApiProperty()
   @Column({ unique: true, nullable: true })
-  paymentCustomerId: string;
+  paymentCustomerId: string; // Stripe customer ID
 
   // ==> [RELATION] COLUMNS <==
   @ApiProperty({ type: 'integer' })

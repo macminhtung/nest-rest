@@ -15,11 +15,7 @@ import { ETableName } from '@/common/enums';
 import type { TRequest } from '@/common/types';
 import { CartItemService } from '@/modules/cart/cart-item/cart-item.service';
 import { CartItemEntity } from '@/modules/cart/cart-item/cart-item.entity';
-import {
-  CreateCartItemDto,
-  UpdateCartItemDto,
-  CheckoutCartItemsDto,
-} from '@/modules/cart/cart-item/dtos';
+import { CreateCartItemDto, UpdateCartItemDto } from '@/modules/cart/cart-item/dtos';
 
 @ApiBearerAuth()
 @Controller(ETableName.CART_ITEM)
@@ -70,17 +66,5 @@ export class CartItemController {
   @Get()
   getCartItems(@Req() req: TRequest): Promise<CartItemEntity[]> {
     return this.service.getCartItems(req.authUser.id);
-  }
-
-  // #=============================#
-  // # ==> CHECKOUT CART-ITEMS <== #
-  // #=============================#
-  @ApiOkResponse({ example: HttpStatus.OK, type: Number })
-  @Post('checkout')
-  checkoutCartItems(
-    @Req() req: TRequest,
-    @Body() payload: CheckoutCartItemsDto,
-  ): Promise<HttpStatus> {
-    return this.service.checkoutCartItems(req.authUser.id, payload);
   }
 }

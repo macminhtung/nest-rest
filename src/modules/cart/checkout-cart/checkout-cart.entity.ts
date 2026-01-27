@@ -4,16 +4,23 @@ import { ETableName } from '@/common/enums';
 import { BaseEntity } from '@/common/base.entity';
 import { UserEntity } from '@/modules/user/user.entity';
 
-type TPaidProduct = {
+export type TCheckoutProduct = {
+  id: string;
   image: string;
-  quantity: number;
   name: string;
   description: string;
-  price: number;
+  unitPrice: number;
+  quantity: number;
 };
 
-@Entity({ name: ETableName.PAID_CART })
-export class PaidCartEntity extends BaseEntity {
+export enum ECheckoutCartStatus {
+  FAILED = 'FAILED',
+  PAID = 'PAID',
+  WAITING_3DS = 'WAITING_3DS',
+}
+
+@Entity({ name: ETableName.CHECKOUT_CART })
+export class CheckoutCartEntity extends BaseEntity {
   @ApiProperty()
   @PrimaryColumn('uuid')
   id: string;
@@ -23,8 +30,20 @@ export class PaidCartEntity extends BaseEntity {
   totalPrice: number;
 
   @ApiProperty()
+  @Column({ enum: ECheckoutCartStatus })
+  status: ECheckoutCartStatus;
+
+  @ApiProperty()
   @Column({ type: 'jsonb', default: [] })
-  paidProducts: TPaidProduct[];
+  products: TCheckoutProduct[];
+
+  @ApiProperty()
+  @Column()
+  paymentIntentId: string;
+
+  @ApiProperty()
+  @Column({ nullable: true })
+  clientSecret: string; // Use for case WAITING_3DS
 
   // ==> [RELATION] COLUMNS <==
   @Index()

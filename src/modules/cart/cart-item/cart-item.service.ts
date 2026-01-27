@@ -1,15 +1,11 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseService } from '@/common/base.service';
 import { ProductService } from '@/modules/product/product.service';
 import { CartItemEntity } from '@/modules/cart/cart-item/cart-item.entity';
-import {
-  CreateCartItemDto,
-  UpdateCartItemDto,
-  CheckoutCartItemsDto,
-} from '@/modules/cart/cart-item/dtos';
+import { CreateCartItemDto, UpdateCartItemDto } from '@/modules/cart/cart-item/dtos';
 
 @Injectable()
 export class CartItemService extends BaseService<CartItemEntity> {
@@ -84,31 +80,5 @@ export class CartItemService extends BaseService<CartItemEntity> {
     });
 
     return cartItems;
-  }
-
-  // #=============================#
-  // # ==> CHECKOUT CART-ITEMS <== #
-  // #=============================#
-  async checkoutCartItems(userId: string, payload: CheckoutCartItemsDto) {
-    const { cartItemIds } = payload;
-
-    // Start transaction
-    const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease({
-      queryRunner,
-      processFunc: async () => {
-        // Find cartItems based on cartItemIds
-        const cartItems = await queryRunner.manager.find(CartItemEntity, {
-          where: { userId, id: In(cartItemIds) },
-        });
-
-        // Delete cartItems
-        await queryRunner.manager.delete(CartItemEntity, cartItems);
-
-        // TODO ==> Handle checkout the cartItems
-      },
-    });
-
-    return HttpStatus.OK;
   }
 }
