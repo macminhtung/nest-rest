@@ -21,6 +21,7 @@ describe('UserService', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.ADMIN.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
 
   const initUser1: UserEntity = {
@@ -33,6 +34,7 @@ describe('UserService', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.USER.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
 
   const initUser2: UserEntity = {
@@ -45,6 +47,7 @@ describe('UserService', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.USER.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
 
   // Mock repository
@@ -110,6 +113,7 @@ describe('UserService', () => {
       const id = 'uuid';
       const updatePayload: UpdateUserDto = {
         firstName: 'Update firstName',
+        roleId: DEFAULT_ROLES.USER.id,
       };
       jest.spyOn(service, 'checkExist').mockResolvedValue(initUser1);
       mockUserRepository.update.mockResolvedValue(undefined);

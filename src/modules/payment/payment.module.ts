@@ -3,10 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import type { TEnvConfiguration } from '@/config';
 import { PaymentService } from '@/modules/payment/payment.service';
-import { UserModule } from '@/modules/user/user.module';
 
 @Module({
-  imports: [UserModule],
   providers: [
     PaymentService,
     {

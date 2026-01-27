@@ -1,18 +1,27 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v7 as uuidv7 } from 'uuid';
 import { hash, compare } from 'bcrypt';
+import Stripe from 'stripe';
 import { DEFAULT_ROLES } from '@/common/constants';
 import { BaseService } from '@/common/base.service';
+import { PaymentService } from '@/modules/payment/payment.service';
 import { UserEntity } from '@/modules/user/user.entity';
-import { CreateUserDto, UpdateUserDto, GetUsersPaginatedDto } from '@/modules/user/dtos';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  GetUsersPaginatedDto,
+  AddCardDto,
+} from '@/modules/user/dtos';
 
 @Injectable()
 export class UserService extends BaseService<UserEntity> {
   constructor(
     @InjectRepository(UserEntity)
     public readonly repository: Repository<UserEntity>,
+
+    private readonly paymentService: PaymentService,
   ) {
     super(repository);
   }
@@ -125,5 +134,57 @@ export class UserService extends BaseService<UserEntity> {
     await this.repository.delete(id);
 
     return id;
+  }
+
+  // #==================#
+  // # ==> ADD CARD <== #
+  // #==================#
+  async addCard(user: UserEntity, payload: AddCardDto) {
+    const { paymentMethodId } = payload;
+    let deleteCustomerFunc = () => Stripe.CustomersResource['del'];
+    let detachPaymentMethodFunc = () => Stripe.PaymentMethodsResource['detach'];
+
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease({
+      queryRunner,
+      processFunc: async () => {
+        // Create a new paymentMethod
+        const { paymentCustomerId, deleteCustomer, detachPaymentMethod } =
+          await this.paymentService.createPaymentMethod({ user, paymentMethodId });
+
+        // Update deleteCustomerFunc & detachPaymentMethodFunc for callback
+        deleteCustomerFunc = deleteCustomer;
+        detachPaymentMethodFunc = detachPaymentMethod;
+
+        // Update the paymentCustomerId
+        if (!user.paymentCustomerId) {
+          queryRunner.manager.update(UserEntity, user.id, { paymentCustomerId });
+        }
+      },
+      rollbackFunc: async () => {
+        await deleteCustomerFunc();
+        await detachPaymentMethodFunc();
+      },
+    });
+
+    return HttpStatus.OK;
+  }
+
+  // #=====================#
+  // # ==> REMOVE CARD <== #
+  // #=====================#
+  async removeCard(user: UserEntity, payload: AddCardDto) {
+    const { paymentMethodId } = payload;
+    await this.paymentService.detachPaymentMethod(user, paymentMethodId);
+    return HttpStatus.OK;
+  }
+
+  // #===================#
+  // # ==> GET CARDS <== #
+  // #===================#
+  async getCards(user: UserEntity) {
+    const paymentMethods = await this.paymentService.listPaymentMethods(user);
+    return paymentMethods;
   }
 }

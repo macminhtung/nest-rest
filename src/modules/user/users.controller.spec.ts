@@ -21,6 +21,7 @@ describe('UserController', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.ADMIN.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
   const initUser1: UserEntity = {
     id: 'uuid-1',
@@ -32,6 +33,7 @@ describe('UserController', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.USER.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
   const initUser2: UserEntity = {
     id: 'uuid-2',
@@ -43,6 +45,7 @@ describe('UserController', () => {
     isEmailVerified: true,
     roleId: DEFAULT_ROLES.USER.id,
     createdAt: new Date(),
+    paymentCustomerId: '',
   };
 
   const mockService = {

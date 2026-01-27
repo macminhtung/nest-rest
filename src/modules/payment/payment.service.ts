@@ -19,8 +19,8 @@ export class PaymentService {
   // #===============================#
   async createPaymentMethod(payload: { user: UserEntity; paymentMethodId: string }) {
     const { user, paymentMethodId } = payload;
-    let deleteCustomerFunc = () => Stripe.CustomersResource['del'];
-    let detachPaymentMethodFunc = () => Stripe.PaymentMethodsResource['detach'];
+    let deleteCustomer = () => Stripe.CustomersResource['del'];
+    let detachPaymentMethod = () => Stripe.PaymentMethodsResource['detach'];
     let paymentCustomerId = user.paymentCustomerId;
 
     // Create new paymentCustomer if user doesn't have one
@@ -36,7 +36,7 @@ export class PaymentService {
       paymentCustomerId = newPaymentCustomer.id;
 
       // Update deleteCustomerFunc for rollback
-      deleteCustomerFunc = () => this.stripe.customers.del(paymentCustomerId);
+      deleteCustomer = () => this.stripe.customers.del(paymentCustomerId);
     }
 
     // Get all paymentMethods belong to customer
@@ -60,9 +60,9 @@ export class PaymentService {
     await this.stripe.paymentMethods.attach(paymentMethodId, { customer: paymentCustomerId });
 
     // Update detachPaymentMethodFunc for rollback
-    detachPaymentMethodFunc = () => this.stripe.paymentMethods.detach(paymentMethodId);
+    detachPaymentMethod = () => this.stripe.paymentMethods.detach(paymentMethodId);
 
-    return { paymentCustomerId, deleteCustomerFunc, detachPaymentMethodFunc };
+    return { paymentCustomerId, deleteCustomer, detachPaymentMethod };
   }
 
   // #===============================#
@@ -108,10 +108,10 @@ export class PaymentService {
     // Format paymentMethods
     const paymentMethods = stripePaymentMethods.data.map(({ id, card }) => ({
       id,
-      last4: card?.last4,
-      brand: card?.brand,
-      expMonth: card?.exp_month,
-      expYear: card?.exp_year,
+      last4: card?.last4 || '',
+      brand: card?.brand || '',
+      expMonth: card?.exp_month?.toString() || '',
+      expYear: card?.exp_year?.toString() || '',
     }));
 
     return paymentMethods;
