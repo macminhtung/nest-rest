@@ -11,7 +11,7 @@ import {
   Req,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, OmitType } from '@nestjs/swagger';
 import { ETableName } from '@/common/enums';
 import { DEFAULT_ROLES } from '@/common/constants';
 import { Roles } from '@/decorators';
@@ -23,6 +23,7 @@ import { CardInfoDto } from '@/modules/user/dtos/card-info.dto';
 import {
   CreateUserDto,
   UpdateUserDto,
+  UpdateProfileDto,
   GetUsersPaginatedDto,
   AddCardDto,
 } from '@/modules/user/dtos';
@@ -82,30 +83,51 @@ export class UserController {
     return this.userService.deleteUser(req.authUser, id);
   }
 
-  // #==================#
-  // # ==> ADD CARD <== #
-  // #==================#
+  // #========================#
+  // # ==> GET MY PROFILE <== #
+  // #========================#
+  @ApiOkResponse({ type: OmitType(UserEntity, ['password']) })
+  @Get('me/profile')
+  getMyProfile(@Req() req: TRequest) {
+    return { ...req.authUser, password: undefined };
+  }
+
+  // #===========================#
+  // # ==> UPDATE MY PROFILE <== #
+  // #===========================#
+  @ApiOkResponse({ type: UpdateProfileDto })
+  @Put('me/profile')
+  updateMyProfile(
+    @Req() req: TRequest,
+    @Body() payload: UpdateProfileDto,
+  ): Promise<UpdateProfileDto> {
+    return this.userService.updateMyProfile(req.authUser.id, payload);
+  }
+
+  // #=====================#
+  // # ==> ADD MY CARD <== #
+  // #=====================#
   @ApiOkResponse({ type: Number, example: HttpStatus.OK })
   @Post('me/add-card')
-  addCard(@Req() req: TRequest, @Body() payload: AddCardDto) {
-    return this.userService.addCard(req.authUser, payload);
+  addMyCard(@Req() req: TRequest, @Body() payload: AddCardDto) {
+    return this.userService.addMyCard(req.authUser, payload);
   }
 
-  // #=====================#
-  // # ==> REMOVE CARD <== #
-  // #=====================#
+  // #========================#
+  // # ==> REMOVE MY CARD <== #
+  // #========================#
   @ApiOkResponse({ type: Number, example: HttpStatus.OK })
   @Post('me/remove-card')
-  removeCard(@Req() req: TRequest, @Body() payload: AddCardDto) {
-    return this.userService.removeCard(req.authUser, payload);
+  removeMyCard(@Req() req: TRequest, @Body() payload: AddCardDto) {
+    return this.userService.removeMyCard(req.authUser, payload);
   }
 
-  // #===================#
-  // # ==> GET CARDS <== #
-  // #===================#
+  // #======================#
+  // # ==> GET MY CARDS <== #
+  // #======================#
   @ApiOkResponse({ type: CardInfoDto, isArray: true })
   @Get('me/get-cards')
-  getCards(@Req() req: TRequest) {
-    return this.userService.getCards(req.authUser);
+  getMyCards(@Req() req: TRequest) {
+    return this.userService.getMyCards(req.authUser);
   }
 }

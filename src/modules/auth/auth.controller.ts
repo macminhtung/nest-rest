@@ -1,6 +1,6 @@
-import { Controller, Post, Put, Patch, Get, Body, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Put, Body, Req, Res, HttpStatus } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiBearerAuth, ApiOkResponse, OmitType } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { Public } from '@/decorators';
 import { AuthService } from '@/modules/auth/auth.service';
 import { UserEntity } from '@/modules/user/user.entity';
@@ -11,7 +11,6 @@ import {
   SignInResponseDto,
   RefreshTokenDto,
   UpdatePasswordDto,
-  UpdateProfileDto,
   GeneratePreSignedUrlDto,
 } from '@/modules/auth/dtos';
 
@@ -75,27 +74,6 @@ export class AuthController {
     @Body() payload: UpdatePasswordDto,
   ): Promise<SignInResponseDto> {
     return this.authService.updatePassword(req, res, payload);
-  }
-
-  // #=====================#
-  // # ==> GET PROFILE <== #
-  // #=====================#
-  @ApiOkResponse({ type: OmitType(UserEntity, ['password']) })
-  @Get('/profile')
-  getProfile(@Req() req: TRequest): Omit<UserEntity, 'password'> {
-    return this.authService.getProfile(req);
-  }
-
-  // #========================#
-  // # ==> UPDATE PROFILE <== #
-  // #========================#
-  @ApiOkResponse({ type: UpdateProfileDto })
-  @Patch('/profile')
-  updateProfile(
-    @Req() req: TRequest,
-    @Body() payload: UpdateProfileDto,
-  ): Promise<UpdateProfileDto> {
-    return this.authService.updateProfile(req, payload);
   }
 
   // # =============================== #

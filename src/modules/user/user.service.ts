@@ -11,6 +11,7 @@ import { UserEntity } from '@/modules/user/user.entity';
 import {
   CreateUserDto,
   UpdateUserDto,
+  UpdateProfileDto,
   GetUsersPaginatedDto,
   AddCardDto,
 } from '@/modules/user/dtos';
@@ -136,10 +137,18 @@ export class UserService extends BaseService<UserEntity> {
     return id;
   }
 
-  // #==================#
-  // # ==> ADD CARD <== #
-  // #==================#
-  async addCard(user: UserEntity, payload: AddCardDto) {
+  // #===========================#
+  // # ==> UPDATE MY PROFILE <== #
+  // #===========================#
+  async updateMyProfile(authUserId: string, payload: UpdateProfileDto) {
+    await this.repository.update(authUserId, payload);
+    return payload;
+  }
+
+  // #=====================#
+  // # ==> ADD MY CARD <== #
+  // #=====================#
+  async addMyCard(user: UserEntity, payload: AddCardDto) {
     const { paymentMethodId } = payload;
     let deleteCustomerFunc = () => Stripe.CustomersResource['del'];
     let detachPaymentMethodFunc = () => Stripe.PaymentMethodsResource['detach'];
@@ -171,19 +180,19 @@ export class UserService extends BaseService<UserEntity> {
     return HttpStatus.OK;
   }
 
-  // #=====================#
-  // # ==> REMOVE CARD <== #
-  // #=====================#
-  async removeCard(user: UserEntity, payload: AddCardDto) {
+  // #========================#
+  // # ==> REMOVE MY CARD <== #
+  // #========================#
+  async removeMyCard(user: UserEntity, payload: AddCardDto) {
     const { paymentMethodId } = payload;
     await this.paymentService.detachPaymentMethod(user, paymentMethodId);
     return HttpStatus.OK;
   }
 
-  // #===================#
-  // # ==> GET CARDS <== #
-  // #===================#
-  async getCards(user: UserEntity) {
+  // #======================#
+  // # ==> GET MY CARDS <== #
+  // #======================#
+  async getMyCards(user: UserEntity) {
     const paymentMethods = await this.paymentService.listPaymentMethods(user);
     return paymentMethods;
   }
