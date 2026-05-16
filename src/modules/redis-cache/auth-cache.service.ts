@@ -26,7 +26,7 @@ export class AuthCacheService {
   // #========================#
   // # ==> SET USER CACHE <== #
   // #========================#
-  async setUserCache(user: UserEntity): Promise<void> {
+  async setUserCache(user: UserEntity | null): Promise<void> {
     await this.redisCacheService.set(`${ETableName.USER}/${user.id}`, user, DEFAULT_TTL);
   }
 
@@ -39,14 +39,14 @@ export class AuthCacheService {
     // Get user cache from redis
     const userCache = await this.getUserCache(userId);
 
-    // CASE: Have no userCache
+    // CASE: Have no userCache ==> Return undefined
     if (!userCache) return undefined;
 
-    // Get token cache from redis
+    // CASE: The userCache already exists ==> Get token cache from redis
     const tokenCacheKey = `${ETableName.USER}/${userId}/${hashToken}`;
     const tokenCache = await this.redisCacheService.get<boolean>(tokenCacheKey);
 
-    // CASE: Have no tokenCache
+    // CASE: Have no tokenCache ==> Return undefined
     if (!tokenCache) return undefined;
 
     // CASE: Cache data already exists

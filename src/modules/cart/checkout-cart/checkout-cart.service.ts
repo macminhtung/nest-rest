@@ -77,7 +77,7 @@ export class CheckoutCartService extends BaseService<CheckoutCartEntity> {
           status: is3DSCard ? ECheckoutCartStatus.WAITING_3DS : ECheckoutCartStatus.PAID,
           userId: user.id,
           paymentIntentId,
-          clientSecret: is3DSCard ? client_secret! : undefined,
+          clientSecret: is3DSCard ? client_secret : undefined,
         });
 
         return newCheckoutCart;

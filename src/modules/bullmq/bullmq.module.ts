@@ -14,7 +14,7 @@ import { ExampleProducer } from '@/modules/bullmq/producers/example.producer';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService<TEnvConfiguration>) => {
-        const redisOptions = configService.get<TEnvConfiguration['redis']>('redis')!;
+        const redisOptions = configService.get<TEnvConfiguration['redis']>('redis');
         return { connection: redisOptions };
       },
     }),

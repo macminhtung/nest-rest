@@ -216,7 +216,7 @@ export class AuthService extends BaseService<UserEntity> {
       // ==> Not throw jwt expired ==> This means the token is still alive
       return { accessToken: accessToken };
     } catch (error) {
-      if (error.message !== 'jwt expired')
+      if (error['message'] !== 'jwt expired')
         throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
     }
 

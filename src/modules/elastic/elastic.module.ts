@@ -12,7 +12,7 @@ import type { TEnvConfiguration } from '@/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<TEnvConfiguration>) => {
         const { node, username, password } =
-          configService.get<TEnvConfiguration['elastic']>('elastic')!;
+          configService.get<TEnvConfiguration['elastic']>('elastic');
         return { node, auth: { username, password } };
       },
     }),

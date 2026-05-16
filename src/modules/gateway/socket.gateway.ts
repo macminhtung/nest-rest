@@ -65,7 +65,7 @@ export class SocketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
       client.emit(ESocketEventName.AUTHENTICATED, true);
     } catch (error) {
-      client.emit(ESocketEventName.ERROR, error.message);
+      client.emit(ESocketEventName.ERROR, error['message']);
       this.handleDisconnect(client);
     }
   }

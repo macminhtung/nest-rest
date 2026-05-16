@@ -1,9 +1,10 @@
-import { IsEmail, IsString, IsIn, MaxLength } from 'class-validator';
+import { IsEmail, IsString, IsIn, MaxLength, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_ROLES } from '@/common/constants';
 
 export class CreateUserDto {
   @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   @MaxLength(500)
   avatar?: string;

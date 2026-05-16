@@ -107,7 +107,7 @@ export class ProductService extends BaseService<ProductEntity> {
     // Search based on keySearch
     if (keySearch) {
       const items = await this.searchProductService.search(keySearch);
-      productIds = items.map((i) => i.id!);
+      productIds = items.map((i) => i.id);
     }
 
     const paginationData = await this.getPaginatedRecords(restParams, (qb) => {

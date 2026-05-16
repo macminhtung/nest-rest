@@ -101,7 +101,7 @@ export class UserController {
     @Req() req: TRequest,
     @Body() payload: UpdateProfileDto,
   ): Promise<UpdateProfileDto> {
-    return this.userService.updateMyProfile(req.authUser.id, payload);
+    return this.userService.updateMyProfile(req.authUser, payload);
   }
 
   // #=====================#

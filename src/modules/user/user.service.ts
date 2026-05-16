@@ -8,6 +8,8 @@ import { DEFAULT_ROLES } from '@/common/constants';
 import { BaseService } from '@/common/base.service';
 import { PaymentService } from '@/modules/payment/payment.service';
 import { UserEntity } from '@/modules/user/user.entity';
+import { UserTokenEntity } from '@/modules/user/user-token/user-token.entity';
+import { AuthCacheService } from '@/modules/redis-cache/auth-cache.service';
 import {
   CreateUserDto,
   UpdateUserDto,
@@ -22,7 +24,8 @@ export class UserService extends BaseService<UserEntity> {
     @InjectRepository(UserEntity)
     public readonly repository: Repository<UserEntity>,
 
-    private readonly paymentService: PaymentService,
+    private authCacheService: AuthCacheService,
+    private paymentService: PaymentService,
   ) {
     super(repository);
   }
@@ -84,6 +87,10 @@ export class UserService extends BaseService<UserEntity> {
     // Update the user
     await this.repository.update(id, payload);
 
+    // Update the userCache if it already exists.
+    const userCache = await this.authCacheService.getUserCache(id);
+    if (userCache) await this.authCacheService.setUserCache({ ...existedUser, ...payload });
+
     return { ...existedUser, ...payload };
   }
 
@@ -131,8 +138,26 @@ export class UserService extends BaseService<UserEntity> {
     // Check the user already exists
     await this.checkExist({ where: { id } });
 
-    // Delete the user
-    await this.repository.delete(id);
+    // Start transaction
+    const queryRunner = this.dataSource.createQueryRunner();
+    await this.handleTransactionAndRelease({
+      queryRunner,
+      processFunc: async () => {
+        // Get the token pair
+        const tokens = await queryRunner.manager.find(UserTokenEntity, {
+          where: { userId: id },
+          select: ['hashToken'],
+        });
+
+        await this.authCacheService.deleteTokenCache({
+          userId: id,
+          hashTokens: tokens.map((i) => i.hashToken),
+        });
+
+        // Delete the user
+        await queryRunner.manager.delete(UserEntity, id);
+      },
+    });
 
     return id;
   }
@@ -140,8 +165,12 @@ export class UserService extends BaseService<UserEntity> {
   // #===========================#
   // # ==> UPDATE MY PROFILE <== #
   // #===========================#
-  async updateMyProfile(authUserId: string, payload: UpdateProfileDto) {
-    await this.repository.update(authUserId, payload);
+  async updateMyProfile(authUser: UserEntity, payload: UpdateProfileDto) {
+    await this.repository.update(authUser.id, payload);
+
+    // Update user profile for userCache
+    await this.authCacheService.setUserCache({ ...authUser, ...payload });
+
     return payload;
   }
 

@@ -60,7 +60,7 @@ export class BaseService<E extends ObjectLiteral> {
       // Rollback func
       if (rollbackFunc) await rollbackFunc();
 
-      throw new BadRequestException({ message: err.message });
+      throw new BadRequestException({ message: err['message'] });
 
       // Release the query runner
     } finally {

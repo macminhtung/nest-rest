@@ -11,7 +11,7 @@ import { PaymentService } from '@/modules/payment/payment.service';
       inject: [ConfigService],
       provide: Stripe,
       useFactory: (configService: ConfigService<TEnvConfiguration>) =>
-        new Stripe(configService.get<TEnvConfiguration['stripe']>('stripe')!.secretKey),
+        new Stripe(configService.get<TEnvConfiguration['stripe']>('stripe').secretKey),
     },
   ],
   exports: [PaymentService, Stripe],

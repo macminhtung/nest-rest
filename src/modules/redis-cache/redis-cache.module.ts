@@ -13,7 +13,7 @@ import { AuthCacheService } from '@/modules/redis-cache/auth-cache.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<TEnvConfiguration>) => {
         const { host, port, password, username, ttl } =
-          configService.get<TEnvConfiguration['redis']>('redis')!;
+          configService.get<TEnvConfiguration['redis']>('redis');
         const redisOption: RedisClientOptions = {
           socket: {
             host,
