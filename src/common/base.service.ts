@@ -35,52 +35,27 @@ export class BaseService<E extends ObjectLiteral> {
   public readonly entityName: string;
 
   // #=====================#
-  // # ==> TRANSACTION <== #
+  // # ==> FIND_RECORD <== #
   // #=====================#
-  async handleTransactionAndRelease<T>(payload: {
-    queryRunner: QueryRunner;
-    processFunc: () => Promise<T>;
-    rollbackFunc?: () => Promise<unknown>;
-  }): Promise<T> {
-    const { queryRunner, processFunc, rollbackFunc } = payload;
-    try {
-      // Start transaction
-      await queryRunner.startTransaction();
+  async findRecord(payload: { findOpts: FindOneOptions<E>; txRepository?: Repository<E> }) {
+    const { findOpts, txRepository } = payload;
 
-      // Run callback function
-      const resData = await processFunc();
+    // Find record
+    const existRecord = txRepository
+      ? await txRepository.findOne({ lock: { mode: 'for_no_key_update' }, ...findOpts })
+      : await this.repository.findOne(findOpts);
 
-      // Commit transaction
-      await queryRunner.commitTransaction();
-
-      return resData;
-
-      // Rollback
-    } catch (err) {
-      // Rollback func
-      if (rollbackFunc) await rollbackFunc();
-
-      throw new BadRequestException({ message: err['message'] });
-
-      // Release the query runner
-    } finally {
-      await queryRunner.release();
-    }
+    return existRecord;
   }
 
   // #=====================#
   // # ==> CHECK_EXIST <== #
   // #=====================#
-  async checkExist(payload: {
-    findOpts: FindOneOptions<E>;
-    txRepository?: Repository<E>;
-    errorMessage?: string;
-  }): Promise<E> {
+  async checkExist(payload: Parameters<typeof this.findRecord>[0] & { errorMessage?: string }) {
     const { txRepository, findOpts, errorMessage } = payload;
 
-    const existRecord = txRepository
-      ? await txRepository.findOne({ lock: { mode: 'for_no_key_update' }, ...findOpts })
-      : await this.repository.findOne(findOpts);
+    // Find the record based on findOpts
+    const existRecord = await this.findRecord({ findOpts, txRepository });
 
     // Throw error if the record doesn't exists
     if (!existRecord)
@@ -95,16 +70,11 @@ export class BaseService<E extends ObjectLiteral> {
   // #========================#
   // # ==> CHECK_CONFLICT <== #
   // #========================#
-  async checkConflict(payload: {
-    findOpts: FindOneOptions<E>;
-    txRepository?: Repository<E>;
-    errorMessage?: string;
-  }) {
+  async checkConflict(payload: Parameters<typeof this.findRecord>[0] & { errorMessage?: string }) {
     const { txRepository, findOpts, errorMessage } = payload;
 
-    const existRecord = txRepository
-      ? await txRepository.findOne({ lock: { mode: 'for_no_key_update' }, ...findOpts })
-      : await this.repository.findOne(findOpts);
+    // Find the record based on findOpts
+    const existRecord = await this.findRecord({ findOpts, txRepository });
 
     // Throw error if the record exists
     if (existRecord)
@@ -164,5 +134,39 @@ export class BaseService<E extends ObjectLiteral> {
 
     const [entities, count] = await qb.getManyAndCount();
     return new PaginatedResponseDto<E>({ args, total: count, records: entities });
+  }
+
+  // #=====================#
+  // # ==> TRANSACTION <== #
+  // #=====================#
+  async handleTransactionAndRelease<T>(payload: {
+    queryRunner: QueryRunner;
+    processFunc: () => Promise<T>;
+    rollbackFunc?: () => Promise<unknown>;
+  }): Promise<T> {
+    const { queryRunner, processFunc, rollbackFunc } = payload;
+    try {
+      // Start transaction
+      await queryRunner.startTransaction();
+
+      // Run callback function
+      const resData = await processFunc();
+
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      return resData;
+
+      // Rollback
+    } catch (err) {
+      // Rollback func
+      if (rollbackFunc) await rollbackFunc();
+
+      throw new BadRequestException({ message: err['message'] });
+
+      // Release the query runner
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
