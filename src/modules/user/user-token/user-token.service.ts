@@ -91,8 +91,10 @@ export class UserTokenService extends BaseService<UserTokenEntity> {
       const existedUser =
         (await this.authCacheService.getUserCache(userId)) ||
         (await this.userService.checkExist({
-          where: { id: userId },
-          select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
+          findOpts: {
+            where: { id: userId },
+            select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
+          },
         }));
 
       // Set new accessToken cache

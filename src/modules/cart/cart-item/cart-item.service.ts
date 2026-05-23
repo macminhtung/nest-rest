@@ -25,10 +25,10 @@ export class CartItemService extends BaseService<CartItemEntity> {
     const { productId, quantity } = payload;
 
     // Prevent duplicate cart item
-    await this.checkConflict({ where: { userId, productId } });
+    await this.checkConflict({ findOpts: { where: { userId, productId } } });
 
     // Check to ensure the product exists
-    await this.productService.checkExist({ where: { id: productId } });
+    await this.productService.checkExist({ findOpts: { where: { id: productId } } });
 
     // Create a new cart-item
     const newCartItem = await this.repository.save({
@@ -48,7 +48,7 @@ export class CartItemService extends BaseService<CartItemEntity> {
     const { id, quantity } = payload;
 
     // Check to ensure the cart-item exists
-    const existedCartItem = await this.checkExist({ where: { id, userId } });
+    const existedCartItem = await this.checkExist({ findOpts: { where: { id, userId } } });
 
     // Update the cart-item
     await this.repository.update(id, { quantity });
@@ -61,7 +61,7 @@ export class CartItemService extends BaseService<CartItemEntity> {
   // #==========================#
   async deleteCartItem(userId: string, id: string) {
     // Check to ensure the cart-item exists
-    await this.checkExist({ where: { id, userId } });
+    await this.checkExist({ findOpts: { where: { id, userId } } });
 
     // Delete the cart-item
     await this.repository.delete(id);

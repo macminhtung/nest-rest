@@ -24,7 +24,7 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async createProduct(payload: CreateProductDto) {
     // Check conflict the product name
-    await this.checkConflict({ where: { name: payload.name } });
+    await this.checkConflict({ findOpts: { where: { name: payload.name } } });
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
@@ -52,10 +52,10 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async updateProduct(id: string, payload: CreateProductDto) {
     // Check the product already exists
-    const existedProduct = await this.checkExist({ where: { id } });
+    const existedProduct = await this.checkExist({ findOpts: { where: { id } } });
 
     // Check conflict the product name
-    await this.checkConflict({ where: { name: payload.name, id: Not(id) } });
+    await this.checkConflict({ findOpts: { where: { name: payload.name, id: Not(id) } } });
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
@@ -79,7 +79,7 @@ export class ProductService extends BaseService<ProductEntity> {
   // #========================#
   async deleteProduct(id: string) {
     // Check the product already exists
-    await this.checkExist({ where: { id } });
+    await this.checkExist({ findOpts: { where: { id } } });
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();

@@ -63,13 +63,13 @@ export class AuthService extends BaseService<UserEntity> {
     if (tokenCache) return tokenCache;
 
     // Check user already exists
-    const existedUser = await this.userService.checkExist(
-      {
+    const existedUser = await this.userService.checkExist({
+      findOpts: {
         select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
         where: { id: decodeToken.id, userTokens: { type, hashToken } },
       },
       errorMessage,
-    );
+    });
 
     // Set the token cache data to redis
     await this.userTokenCacheService.setTokenCache({ user: existedUser, type, hashToken });
@@ -100,7 +100,7 @@ export class AuthService extends BaseService<UserEntity> {
     const { email, password, firstName, lastName } = payload;
 
     // Check if email has conflict
-    await this.userService.checkConflict({ where: { email } });
+    await this.userService.checkConflict({ findOpts: { where: { email } } });
 
     // Hash the password
     const hashPassword = await this.userService.generateHashPassword(password);
@@ -126,8 +126,10 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Check email already exists
     const existedUser = await this.userService.checkExist({
-      where: { email },
-      select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
+      findOpts: {
+        where: { email },
+        select: ['id', 'email', 'password', 'firstName', 'lastName', 'roleId'],
+      },
     });
     const { id } = existedUser;
 
@@ -174,10 +176,12 @@ export class AuthService extends BaseService<UserEntity> {
 
     // Check the refreshToken already exist
     const { id: refreshTokenId } = await this.userTokenService.checkExist({
-      where: {
-        userId: authId,
-        type: ETokenType.REFRESH_TOKEN,
-        hashToken: this.userTokenService.generateHashToken(refreshToken),
+      findOpts: {
+        where: {
+          userId: authId,
+          type: ETokenType.REFRESH_TOKEN,
+          hashToken: this.userTokenService.generateHashToken(refreshToken),
+        },
       },
     });
 
@@ -222,15 +226,15 @@ export class AuthService extends BaseService<UserEntity> {
 
     // [DATABASE] Check the refreshToken already exists
     const hashRefreshToken = this.userTokenService.generateHashToken(refreshToken);
-    const { id: refreshTokenId } = await this.userTokenService.checkExist(
-      { where: { userId, type: ETokenType.REFRESH_TOKEN, hashToken: hashRefreshToken } },
-      ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
-    );
+    const { id: refreshTokenId } = await this.userTokenService.checkExist({
+      findOpts: { where: { userId, type: ETokenType.REFRESH_TOKEN, hashToken: hashRefreshToken } },
+      errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
+    });
 
     // [DATABASE] Check the accessToken already exists
     const hashAccessToken = this.userTokenService.generateHashToken(accessToken);
-    await this.userTokenService.checkExist(
-      {
+    await this.userTokenService.checkExist({
+      findOpts: {
         where: {
           userId,
           type: ETokenType.ACCESS_TOKEN,
@@ -238,8 +242,8 @@ export class AuthService extends BaseService<UserEntity> {
           refreshTokenId,
         },
       },
-      ERROR_MESSAGES.ACCESS_TOKEN_INVALID,
-    );
+      errorMessage: ERROR_MESSAGES.ACCESS_TOKEN_INVALID,
+    });
 
     // Generate new accessToken
     const newAccessToken = this.jwtService.generateToken({

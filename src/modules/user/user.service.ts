@@ -60,7 +60,7 @@ export class UserService extends BaseService<UserEntity> {
   async createUser(payload: CreateUserDto) {
     const { email } = payload;
     // Prevent creating if email has conflict
-    await this.checkConflict({ where: { email } });
+    await this.checkConflict({ findOpts: { where: { email } } });
 
     // Hash the password
     const temporaryPassword = this.randomPassword(); // TODO: ==> Send the temporaryPassword via email
@@ -82,7 +82,7 @@ export class UserService extends BaseService<UserEntity> {
   // #=====================#
   async updateUser(id: string, payload: UpdateUserDto) {
     // Check the user already exists
-    const existedUser = await this.checkExist({ where: { id } });
+    const existedUser = await this.checkExist({ findOpts: { where: { id } } });
 
     // Update the user
     await this.repository.update(id, payload);
@@ -98,7 +98,9 @@ export class UserService extends BaseService<UserEntity> {
   // # ==> GET USER <== #
   // #==================#
   async getUser(id: string) {
-    const existedUser = await this.checkExist({ where: { id }, relations: { role: true } });
+    const existedUser = await this.checkExist({
+      findOpts: { where: { id }, relations: { role: true } },
+    });
     return existedUser;
   }
 
@@ -136,7 +138,7 @@ export class UserService extends BaseService<UserEntity> {
     if (authUser.id === id) throw new BadRequestException({ message: 'Can not delete yourself' });
 
     // Check the user already exists
-    await this.checkExist({ where: { id } });
+    await this.checkExist({ findOpts: { where: { id } } });
 
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();

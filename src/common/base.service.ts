@@ -71,7 +71,8 @@ export class BaseService<E extends ObjectLiteral> {
   // #=====================#
   // # ==> CHECK_EXIST <== #
   // #=====================#
-  async checkExist(findOpts: FindOneOptions<E>, errorMessage?: string): Promise<E> {
+  async checkExist(payload: { findOpts: FindOneOptions<E>; errorMessage?: string }): Promise<E> {
+    const { findOpts, errorMessage } = payload;
     const existRecord = await this.repository.findOne(findOpts);
 
     // Throw error if the record doesn't exists
@@ -87,7 +88,9 @@ export class BaseService<E extends ObjectLiteral> {
   // #========================#
   // # ==> CHECK_CONFLICT <== #
   // #========================#
-  async checkConflict(findOpts: FindOneOptions<E>, errorMessage?: string) {
+  async checkConflict(payload: { findOpts: FindOneOptions<E>; errorMessage?: string }) {
+    const { findOpts, errorMessage } = payload;
+
     const existRecord = await this.repository.findOne(findOpts);
 
     // Throw error if the record exists
