@@ -224,37 +224,43 @@ export class AuthService extends BaseService<UserEntity> {
         throw new BadRequestException({ message: ERROR_MESSAGES.ACCESS_TOKEN_INVALID });
     }
 
-    // [DATABASE] Check the refreshToken already exists
-    const hashRefreshToken = this.userTokenService.generateHashToken(refreshToken);
-    const { id: refreshTokenId } = await this.userTokenService.checkExist({
-      findOpts: { where: { userId, type: ETokenType.REFRESH_TOKEN, hashToken: hashRefreshToken } },
-      errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
-    });
-
-    // [DATABASE] Check the accessToken already exists
-    const hashAccessToken = this.userTokenService.generateHashToken(accessToken);
-    await this.userTokenService.checkExist({
-      findOpts: {
-        where: {
-          userId,
-          type: ETokenType.ACCESS_TOKEN,
-          hashToken: hashAccessToken,
-          refreshTokenId,
-        },
-      },
-      errorMessage: ERROR_MESSAGES.ACCESS_TOKEN_INVALID,
-    });
-
-    // Generate new accessToken
-    const newAccessToken = this.jwtService.generateToken({
-      tokenPayload: { id: userId, email, type: ETokenType.ACCESS_TOKEN },
-    });
-
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease({
+    const userTokenRepository = queryRunner.manager.getRepository(UserTokenEntity);
+
+    const newAccessToken = await this.handleTransactionAndRelease({
       queryRunner,
       processFunc: async () => {
+        // [DATABASE] Check the refreshToken already exists
+        const hashRefreshToken = this.userTokenService.generateHashToken(refreshToken);
+        const { id: refreshTokenId } = await this.userTokenService.checkExist({
+          txRepository: userTokenRepository,
+          findOpts: {
+            where: { userId, type: ETokenType.REFRESH_TOKEN, hashToken: hashRefreshToken },
+          },
+          errorMessage: ERROR_MESSAGES.REFRESH_TOKEN_INVALID,
+        });
+
+        // [DATABASE] Check the accessToken already exists
+        const hashAccessToken = this.userTokenService.generateHashToken(accessToken);
+        await this.userTokenService.checkExist({
+          txRepository: userTokenRepository,
+          findOpts: {
+            where: {
+              userId,
+              type: ETokenType.ACCESS_TOKEN,
+              hashToken: hashAccessToken,
+              refreshTokenId,
+            },
+          },
+          errorMessage: ERROR_MESSAGES.ACCESS_TOKEN_INVALID,
+        });
+
+        // Generate new accessToken
+        const newAccessToken = this.jwtService.generateToken({
+          tokenPayload: { id: userId, email, type: ETokenType.ACCESS_TOKEN },
+        });
+
         // Store new accessToken
         await this.userTokenService.processUserToken({
           mode: EProcessUserTokenMode.REFRESH_ACCESS_TOKEN,
@@ -264,6 +270,8 @@ export class AuthService extends BaseService<UserEntity> {
           newAccessToken,
           oldHashAccessToken: hashAccessToken,
         });
+
+        return newAccessToken;
       },
     });
 

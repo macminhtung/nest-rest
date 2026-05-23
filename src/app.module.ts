@@ -16,7 +16,7 @@ import { CartModule } from '@/modules/cart/cart.module';
 import { ElasticModule } from '@/modules/elastic/elastic.module';
 import { RedisCacheModule } from '@/modules/redis-cache/redis-cache.module';
 import { GatewayModule } from '@/modules/gateway/gateway.module';
-import { BullMQModule } from '@/modules/bullmq/bullmq.module';
+import { BullMQModule } from './modules/bullmq/bullmq.module';
 import { PaymentModule } from '@/modules/payment/payment.module';
 
 @Module({

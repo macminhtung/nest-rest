@@ -137,14 +137,15 @@ export class UserService extends BaseService<UserEntity> {
     // Prevent delete yourself
     if (authUser.id === id) throw new BadRequestException({ message: 'Can not delete yourself' });
 
-    // Check the user already exists
-    await this.checkExist({ findOpts: { where: { id } } });
-
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
+    const txRepository = queryRunner.manager.getRepository(UserEntity);
     await this.handleTransactionAndRelease({
       queryRunner,
       processFunc: async () => {
+        // Check the user already exists
+        await this.checkExist({ txRepository, findOpts: { where: { id } } });
+
         // Get the token pair
         const tokens = await queryRunner.manager.find(UserTokenEntity, {
           where: { userId: id },

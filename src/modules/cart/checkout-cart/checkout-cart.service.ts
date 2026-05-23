@@ -41,7 +41,7 @@ export class CheckoutCartService extends BaseService<CheckoutCartEntity> {
         const cartItems = await queryRunner.manager.find(CartItemEntity, {
           where: { userId: user.id, id: In(cartItemIds) },
           relations: { product: true },
-          lock: { mode: 'for_no_key_update' },
+          lock: { mode: 'pessimistic_write' },
         });
 
         // Check the cartItemIds is valid

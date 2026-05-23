@@ -23,14 +23,18 @@ export class ProductService extends BaseService<ProductEntity> {
   // # ==> CREATE PRODUCT <== #
   // #========================#
   async createProduct(payload: CreateProductDto) {
-    // Check conflict the product name
-    await this.checkConflict({ findOpts: { where: { name: payload.name } } });
-
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
+    const txRepository = queryRunner.manager.getRepository(ProductEntity);
     const resData = await this.handleTransactionAndRelease({
       queryRunner,
       processFunc: async () => {
+        // Check conflict the product name
+        await this.checkConflict({
+          txRepository,
+          findOpts: { where: { name: payload.name } },
+        });
+
         // Create new product
         const newProduct = await queryRunner.manager.save(ProductEntity, {
           id: uuidv7(),
@@ -51,23 +55,32 @@ export class ProductService extends BaseService<ProductEntity> {
   // # ==> UPDATE PRODUCT <== #
   // #========================#
   async updateProduct(id: string, payload: CreateProductDto) {
-    // Check the product already exists
-    const existedProduct = await this.checkExist({ findOpts: { where: { id } } });
-
-    // Check conflict the product name
-    await this.checkConflict({ findOpts: { where: { name: payload.name, id: Not(id) } } });
-
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
-    await this.handleTransactionAndRelease({
+    const txRepository = queryRunner.manager.getRepository(ProductEntity);
+    const existedProduct = await this.handleTransactionAndRelease({
       queryRunner,
 
       processFunc: async () => {
+        // Check the product already exists
+        const existedProduct = await this.checkExist({
+          txRepository: txRepository,
+          findOpts: { where: { id } },
+        });
+
+        // Check conflict the product name
+        await this.checkConflict({
+          txRepository,
+          findOpts: { where: { name: payload.name, id: Not(id) } },
+        });
+
         // Update product
         await queryRunner.manager.update(ProductEntity, id, payload);
 
         // Update index for the new product
         await this.searchProductService.index({ id, ...payload });
+
+        return existedProduct;
       },
     });
 
@@ -78,14 +91,16 @@ export class ProductService extends BaseService<ProductEntity> {
   // # ==> DELETE PRODUCT <== #
   // #========================#
   async deleteProduct(id: string) {
-    // Check the product already exists
-    await this.checkExist({ findOpts: { where: { id } } });
-
     // Start transaction
     const queryRunner = this.dataSource.createQueryRunner();
+    const txRepository = queryRunner.manager.getRepository(ProductEntity);
+
     await this.handleTransactionAndRelease({
       queryRunner,
       processFunc: async () => {
+        // Check the product already exists
+        await this.checkExist({ txRepository, findOpts: { where: { id } } });
+
         // Delete product
         await queryRunner.manager.softDelete(ProductEntity, id);
 

@@ -71,9 +71,16 @@ export class BaseService<E extends ObjectLiteral> {
   // #=====================#
   // # ==> CHECK_EXIST <== #
   // #=====================#
-  async checkExist(payload: { findOpts: FindOneOptions<E>; errorMessage?: string }): Promise<E> {
-    const { findOpts, errorMessage } = payload;
-    const existRecord = await this.repository.findOne(findOpts);
+  async checkExist(payload: {
+    findOpts: FindOneOptions<E>;
+    txRepository?: Repository<E>;
+    errorMessage?: string;
+  }): Promise<E> {
+    const { txRepository, findOpts, errorMessage } = payload;
+
+    const existRecord = txRepository
+      ? await txRepository.findOne({ lock: { mode: 'for_no_key_update' }, ...findOpts })
+      : await this.repository.findOne(findOpts);
 
     // Throw error if the record doesn't exists
     if (!existRecord)
@@ -88,10 +95,16 @@ export class BaseService<E extends ObjectLiteral> {
   // #========================#
   // # ==> CHECK_CONFLICT <== #
   // #========================#
-  async checkConflict(payload: { findOpts: FindOneOptions<E>; errorMessage?: string }) {
-    const { findOpts, errorMessage } = payload;
+  async checkConflict(payload: {
+    findOpts: FindOneOptions<E>;
+    txRepository?: Repository<E>;
+    errorMessage?: string;
+  }) {
+    const { txRepository, findOpts, errorMessage } = payload;
 
-    const existRecord = await this.repository.findOne(findOpts);
+    const existRecord = txRepository
+      ? await txRepository.findOne({ lock: { mode: 'for_no_key_update' }, ...findOpts })
+      : await this.repository.findOne(findOpts);
 
     // Throw error if the record exists
     if (existRecord)
